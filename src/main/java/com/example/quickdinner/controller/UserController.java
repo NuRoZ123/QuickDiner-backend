@@ -1,14 +1,20 @@
 package com.example.quickdinner.controller;
 
 import com.example.quickdinner.model.Utilisateur;
+import com.example.quickdinner.utils.Jwt;
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
+import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import com.example.quickdinner.service.UtilisateurService;
+import io.jsonwebtoken.Jwts;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Controller
@@ -23,7 +29,7 @@ public class UserController {
 
     @PostMapping("/user/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<String> registerUser(@RequestBody Utilisateur utilisateur) {
+    public ResponseEntity<String> register(@RequestBody Utilisateur utilisateur) {
 
         if(utilisateur.getNom() == null || utilisateur.getNom().trim().isEmpty()) {
             return ResponseEntity.badRequest().body("Nom is required");
@@ -58,8 +64,35 @@ public class UserController {
         return ResponseEntity.ok("User registered");
     }
 
-    @GetMapping("/user/{email}")
-    public ResponseEntity<Optional<Utilisateur>> getUser(@PathVariable String email){
-        return ResponseEntity.ok(utilisateurService.findByEmail(email));
+    @PostMapping("/user/login")
+    public ResponseEntity<String> login(@RequestBody Utilisateur utilisateur) {
+
+        if(utilisateur.getEmail() == null || utilisateur.getEmail().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Email is required");
+        }
+        else if(utilisateur.getPassword() == null || utilisateur.getPassword().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Password is required");
+        }
+
+        Argon2 argon2 = Argon2Factory.create(
+                Argon2Factory.Argon2Types.ARGON2id, 32, 64);
+
+        Optional<Utilisateur> user = utilisateurService.findByEmail(utilisateur.getEmail());
+
+        if(user.isEmpty()) {
+            return ResponseEntity.badRequest().body("Email or password is wrong");
+        }
+
+        if(!argon2.verify(user.get().getPassword(), utilisateur.getPassword())) {
+            return ResponseEntity.badRequest().body("Email or password is wrong");
+        }
+
+        return ResponseEntity.ok(Jwt.generate(user.get()));
+    }
+
+    @GetMapping("/user/verify")
+    public ResponseEntity<Boolean> checkToken(@RequestHeader("Authorization") String token) {
+        Utilisateur user = Jwt.getUserFromToken(token);
+        return ResponseEntity.ok(user != null);
     }
 }
