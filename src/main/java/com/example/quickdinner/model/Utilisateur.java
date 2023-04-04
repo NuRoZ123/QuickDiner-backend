@@ -1,6 +1,8 @@
 package com.example.quickdinner.model;
 
-import jakarta.persistence.*;
+import io.swagger.annotations.ApiModelProperty;
+import javax.persistence.*;
+
 import lombok.*;
 import org.json.JSONObject;
 
@@ -15,6 +17,7 @@ import org.json.JSONObject;
 public class Utilisateur {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @ApiModelProperty(value = "Identifiant unique de l'utilisateur", example = "1")
     private Integer id;
     private String nom;
     private String prenom;

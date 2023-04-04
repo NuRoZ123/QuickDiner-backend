@@ -6,6 +6,10 @@ import com.example.quickdinner.utils.Jwt;
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -31,10 +35,15 @@ public class UserController {
         this.roleService = roleService;
     }
 
+    @ApiOperation("Register a new user")
+    @ApiImplicitParam(name = "Utilisateur",
+            value = "{\"nom\": \"string\", \"prenom\": \"string\", \"email\": \"string\", \"password\": \"string\"}",
+            required = true,
+            dataType = "object",
+            paramType = "body")
     @PostMapping("/user/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<String> register(@RequestBody Utilisateur utilisateur) {
-
+    public ResponseEntity<String> register(@ApiParam(hidden = true) @RequestBody Utilisateur utilisateur) {
         if(utilisateur.getNom() == null || utilisateur.getNom().trim().isEmpty()) {
             return ResponseEntity.badRequest().body("Nom is required");
         }
@@ -70,8 +79,14 @@ public class UserController {
         return ResponseEntity.ok("User registered");
     }
 
+    @ApiOperation("login a user")
+    @ApiImplicitParam(name = "Utilisateur",
+            value = "{\"email\": \"string\", \"password\": \"string\"}",
+            required = true,
+            dataType = "object",
+            paramType = "body")
     @PostMapping("/user/login")
-    public ResponseEntity<String> login(@RequestBody Utilisateur utilisateur) {
+    public ResponseEntity<String> login(@ApiParam(hidden = true) @RequestBody Utilisateur utilisateur) {
 
         if(utilisateur.getEmail() == null || utilisateur.getEmail().trim().isEmpty()) {
             return ResponseEntity.badRequest().body("Email is required");
@@ -85,7 +100,7 @@ public class UserController {
 
         Optional<Utilisateur> user = utilisateurService.findByEmail(utilisateur.getEmail());
 
-        if(user.isEmpty()) {
+        if(!user.isPresent()) {
             return ResponseEntity.badRequest().body("Email or password is wrong");
         }
 
@@ -96,6 +111,7 @@ public class UserController {
         return ResponseEntity.ok(Jwt.generate(user.get()));
     }
 
+    @ApiOperation("check if the token is valid")
     @GetMapping("/user/verify")
     public ResponseEntity<Boolean> checkToken(@RequestHeader("Authorization") String token) {
         Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);

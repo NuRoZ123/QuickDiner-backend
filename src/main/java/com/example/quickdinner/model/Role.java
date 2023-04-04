@@ -1,7 +1,9 @@
 package com.example.quickdinner.model;
 
-import jakarta.persistence.*;
 import lombok.*;
+
+import javax.persistence.*;
+
 
 @Builder
 @AllArgsConstructor
