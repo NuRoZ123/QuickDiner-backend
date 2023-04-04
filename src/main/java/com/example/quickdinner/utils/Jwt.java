@@ -1,17 +1,21 @@
 package com.example.quickdinner.utils;
 
 import com.example.quickdinner.model.Utilisateur;
+import com.example.quickdinner.service.UtilisateurService;
+import com.example.quickdinner.service.impl.UtilisateurServiceImpl;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.json.JSONObject;
 
 import java.util.Date;
+import java.util.Optional;
 
 public class Jwt {
     private static final long expirationTimeInMs = 86400000;
     private static final String secretKey = "SUPERSECRET_KEY_APPP_ZEUBI";
 
-    public static Utilisateur getUserFromToken(String token) {
+    public static Optional<Utilisateur> getUserFromToken(String token, UtilisateurService utilisateurService) {
         try {
             token = token.split(" ")[1];
 
@@ -21,8 +25,10 @@ public class Jwt {
                     .getBody();
 
             String userJson = claims.getSubject();
+            JSONObject obj = new JSONObject(userJson);
+            String email = obj.getString("email");
 
-            return Utilisateur.fromJson(userJson);
+            return utilisateurService.findByEmail(email);
         } catch (Exception e) {
             return null;
         }

@@ -1,6 +1,7 @@
 package com.example.quickdinner.controller;
 
 import com.example.quickdinner.model.Utilisateur;
+import com.example.quickdinner.service.RoleService;
 import com.example.quickdinner.utils.Jwt;
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
@@ -22,9 +23,12 @@ import java.util.Optional;
 public class UserController {
 
     private final UtilisateurService utilisateurService;
+    private final RoleService roleService;
 
-    public UserController(UtilisateurService utilisateurService) {
+    public UserController(UtilisateurService utilisateurService,
+                          RoleService roleService) {
         this.utilisateurService = utilisateurService;
+        this.roleService = roleService;
     }
 
     @PostMapping("/user/register")
@@ -60,6 +64,8 @@ public class UserController {
                 Argon2Factory.Argon2Types.ARGON2id, 32, 64);
 
         utilisateur.setPassword(argon2.hash(4, 1024 * 1024, 8, utilisateur.getPassword()));
+        utilisateur.setRole(roleService.findByLibelle("Client").orElse(null));
+
         utilisateurService.save(utilisateur);
         return ResponseEntity.ok("User registered");
     }
@@ -92,7 +98,7 @@ public class UserController {
 
     @GetMapping("/user/verify")
     public ResponseEntity<Boolean> checkToken(@RequestHeader("Authorization") String token) {
-        Utilisateur user = Jwt.getUserFromToken(token);
-        return ResponseEntity.ok(user != null);
+        Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
+        return ResponseEntity.ok(user != null && user.isPresent());
     }
 }
