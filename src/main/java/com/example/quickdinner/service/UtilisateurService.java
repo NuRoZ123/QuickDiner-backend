@@ -7,4 +7,6 @@ import java.util.Optional;
 
 public interface UtilisateurService {
     Optional<Utilisateur> findByEmail(String email);
+
+    void save(Utilisateur utilisateur);
 }

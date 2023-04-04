@@ -67,6 +67,12 @@
 			<artifactId>mysql-connector-java</artifactId>
 			<version>8.0.26</version>
 		</dependency>
+
+		<dependency>
+			<groupId>de.mkammerer</groupId>
+			<artifactId>argon2-jvm</artifactId>
+			<version>2.7</version>
+		</dependency>
 	</dependencies>
 
 	<build>
