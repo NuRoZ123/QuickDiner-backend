@@ -17,15 +17,16 @@ import org.json.JSONObject;
 public class Utilisateur {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @ApiModelProperty(value = "Identifiant unique de l'utilisateur", example = "1")
     private Integer id;
     private String nom;
     private String prenom;
     private String email;
     private String password;
-
     @ManyToOne
     private Role role;
+
+    @ManyToOne
+    private Panier panier;
 
     @Override
     public String toString() {
