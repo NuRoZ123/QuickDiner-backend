@@ -1,25 +1,21 @@
 package com.example.quickdinner.controller;
 
+import com.example.quickdinner.model.Panier;
 import com.example.quickdinner.model.Utilisateur;
+import com.example.quickdinner.service.PanierService;
 import com.example.quickdinner.service.RoleService;
+import com.example.quickdinner.service.UtilisateurService;
 import com.example.quickdinner.utils.Jwt;
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import com.example.quickdinner.service.UtilisateurService;
-import io.jsonwebtoken.Jwts;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.util.Objects;
 import java.util.Optional;
 
 @Controller
@@ -28,14 +24,16 @@ public class UserController {
 
     private final UtilisateurService utilisateurService;
     private final RoleService roleService;
+    private final PanierService panierService;
 
     public UserController(UtilisateurService utilisateurService,
-                          RoleService roleService) {
+                          RoleService roleService, PanierService panierService) {
         this.utilisateurService = utilisateurService;
         this.roleService = roleService;
+        this.panierService = panierService;
     }
 
-    @ApiOperation("Register a new user")
+    @ApiOperation("Enregistre un nouvelle utilisateur")
     @ApiImplicitParam(name = "Utilisateur",
             value = "{\"nom\": \"string\", \"prenom\": \"string\", \"email\": \"string\", \"password\": \"string\"}",
             required = true,
@@ -75,11 +73,16 @@ public class UserController {
         utilisateur.setPassword(argon2.hash(4, 1024 * 1024, 8, utilisateur.getPassword()));
         utilisateur.setRole(roleService.findByLibelle("Client").orElse(null));
 
+        Panier panier = Panier.builder().build();
+        panier = panierService.save(panier);
+
+        utilisateur.setPanier(panier);
+
         utilisateurService.save(utilisateur);
         return ResponseEntity.ok("User registered");
     }
 
-    @ApiOperation("login a user")
+    @ApiOperation("Connecte un utilisateur")
     @ApiImplicitParam(name = "Utilisateur",
             value = "{\"email\": \"string\", \"password\": \"string\"}",
             required = true,
@@ -111,10 +114,27 @@ public class UserController {
         return ResponseEntity.ok(Jwt.generate(user.get()));
     }
 
-    @ApiOperation("check if the token is valid")
+    @ApiOperation("vérifie si le token est valide")
     @GetMapping("/user/verify")
     public ResponseEntity<Boolean> checkToken(@RequestHeader("Authorization") String token) {
         Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
         return ResponseEntity.ok(user != null && user.isPresent());
+    }
+
+    @ApiOperation("Récupère le panier de produit d'un utilisateur")
+    @GetMapping("/user/panier")
+    public ResponseEntity<Panier> getPanier(@RequestHeader("Authorization") String token) {
+        Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
+        if(user == null || !user.isPresent()) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
+        Utilisateur connectedUser = user.get();
+
+        if(!"Client".equals(connectedUser.getRole().getLibelle())) {
+            return ResponseEntity.status(401).body(null);
+        }
+
+        return ResponseEntity.ok(connectedUser.getPanier());
     }
 }
