@@ -2,7 +2,6 @@ package com.example.quickdinner.utils;
 
 import com.example.quickdinner.model.Utilisateur;
 import com.example.quickdinner.service.UtilisateurService;
-import com.example.quickdinner.service.impl.UtilisateurServiceImpl;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -17,7 +16,12 @@ public class Jwt {
 
     public static Optional<Utilisateur> getUserFromToken(String token, UtilisateurService utilisateurService) {
         try {
+            String bearer = token.split(" ")[0];
             token = token.split(" ")[1];
+
+            if(!"Bearer".equals(bearer)) {
+                return null;
+            }
 
             Claims claims = Jwts.parser()
                     .setSigningKey(secretKey)
