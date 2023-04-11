@@ -7,4 +7,6 @@ import java.util.Optional;
 
 public interface CommercantService {
     List<Commercant> findAll();
+
+    Optional<Commercant> findByUtilisateurId(int idUtilisateur);
 }

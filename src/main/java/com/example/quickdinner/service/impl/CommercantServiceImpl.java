@@ -7,6 +7,7 @@ import lombok.extern.java.Log;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Log
@@ -20,5 +21,10 @@ public class CommercantServiceImpl implements CommercantService {
     @Override
     public List<Commercant> findAll() {
         return this.commercantRepository.findAll();
+    }
+
+    @Override
+    public Optional<Commercant> findByUtilisateurId(int idUtilisateur) {
+        return this.commercantRepository.findByManagerId(idUtilisateur);
     }
 }

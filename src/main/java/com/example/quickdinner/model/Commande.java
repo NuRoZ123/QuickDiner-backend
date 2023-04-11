@@ -1,5 +1,6 @@
 package com.example.quickdinner.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
@@ -19,6 +20,8 @@ public class Commande {
 
     @OneToMany(mappedBy = "commande", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<ProduitCommander> produitsCommander;
+
     @ManyToOne
+    @JsonIgnore
     private Utilisateur utilisateur;
 }

@@ -1,7 +1,9 @@
 package com.example.quickdinner.controller;
 
+import com.example.quickdinner.model.Commande;
 import com.example.quickdinner.model.Panier;
 import com.example.quickdinner.model.Utilisateur;
+import com.example.quickdinner.service.CommandeService;
 import com.example.quickdinner.service.PanierService;
 import com.example.quickdinner.service.RoleService;
 import com.example.quickdinner.service.UtilisateurService;
@@ -16,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -25,12 +28,15 @@ public class UserController {
     private final UtilisateurService utilisateurService;
     private final RoleService roleService;
     private final PanierService panierService;
+    private final CommandeService commandeService;
 
     public UserController(UtilisateurService utilisateurService,
-                          RoleService roleService, PanierService panierService) {
+                          RoleService roleService, PanierService panierService,
+                          CommandeService commandeService) {
         this.utilisateurService = utilisateurService;
         this.roleService = roleService;
         this.panierService = panierService;
+        this.commandeService = commandeService;
     }
 
     @ApiOperation("Enregistre un nouvelle utilisateur")
@@ -136,5 +142,22 @@ public class UserController {
         }
 
         return ResponseEntity.ok(connectedUser.getPanier());
+    }
+
+    @ApiOperation("Récupère les commandes d'un utilisateur: Si l'utilisateur est un client")
+    @GetMapping("/user/commandes")
+    public ResponseEntity<List<Commande>> getCommandes(@RequestHeader("Authorization") String token) {
+        Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
+        if(user == null || !user.isPresent()) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
+        Utilisateur connectedUser = user.get();
+
+        if("Client".equals(connectedUser.getRole().getLibelle())) {
+            return ResponseEntity.ok(commandeService.findAllByUtilisateurId(connectedUser.getId()));
+        }
+
+        return ResponseEntity.status(401).body(null);
     }
 }

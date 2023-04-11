@@ -1,5 +1,6 @@
 package com.example.quickdinner.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
@@ -21,4 +22,8 @@ public class Commercant {
 
     @Column(name= "image", columnDefinition = "LONGTEXT")
     private String image;
+
+    @JsonIgnore
+    @OneToOne
+    private Utilisateur manager;
 }
