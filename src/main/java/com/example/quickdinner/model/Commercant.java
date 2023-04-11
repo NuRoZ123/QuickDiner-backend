@@ -3,7 +3,6 @@ package com.example.quickdinner.model;
 import lombok.*;
 
 import javax.persistence.*;
-import java.util.List;
 
 @Builder
 @AllArgsConstructor
@@ -22,7 +21,4 @@ public class Commercant {
 
     @Column(name= "image", columnDefinition = "LONGTEXT")
     private String image;
-
-//    @ManyToMany(targetEntity = Produit.class, cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "commercants")
-//    private List<Produit> produits;
 }

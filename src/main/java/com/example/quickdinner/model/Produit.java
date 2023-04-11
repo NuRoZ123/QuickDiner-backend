@@ -1,9 +1,9 @@
 package com.example.quickdinner.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
-import java.util.List;
 
 @Builder
 @AllArgsConstructor
@@ -19,9 +19,9 @@ public class Produit {
     private Integer id;
     private String nom;
     private String description;
-    private String image;
-    private Double prix;
+    private Float prix;
 
-    @ManyToMany(targetEntity = Commercant.class, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<Commercant> commercants;
+    @ManyToOne(targetEntity = Commercant.class, fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false)
+    @JsonIgnore
+    private Commercant commercant;
 }
