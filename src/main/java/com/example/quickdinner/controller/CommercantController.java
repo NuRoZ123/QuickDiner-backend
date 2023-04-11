@@ -1,37 +1,43 @@
 package com.example.quickdinner.controller;
 
-import com.example.quickdinner.model.Commercant;
-import com.example.quickdinner.model.Utilisateur;
+import com.example.quickdinner.service.CommentaireCommercantsService;
 import com.example.quickdinner.service.CommercantService;
-import com.example.quickdinner.service.RoleService;
-import com.example.quickdinner.service.UtilisateurService;
-import com.example.quickdinner.utils.Jwt;
-import de.mkammerer.argon2.Argon2;
-import de.mkammerer.argon2.Argon2Factory;
-import io.swagger.annotations.ApiImplicitParam;
+import com.example.quickdinner.utils.PairNoteRestaurant;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/api")
 public class CommercantController {
 
     private final CommercantService commercantService;
+    private final CommentaireCommercantsService commentaireCommercantsService;
 
-    public CommercantController(CommercantService commercantService) {
+    public CommercantController(CommercantService commercantService,
+            CommentaireCommercantsService commentaireCommercantsService) {
         this.commercantService = commercantService;
+        this.commentaireCommercantsService = commentaireCommercantsService;
     }
 
-    @ApiOperation("Get all commercants (restaurant)")
+    @ApiOperation(value = "Get all commercants (restaurant)",
+    response = List.class)
     @GetMapping("/restaurants")
-    public ResponseEntity<List<Commercant>> register() {
-       return ResponseEntity.ok(commercantService.findAll());
+    public ResponseEntity<List<PairNoteRestaurant>> register() {
+        List<PairNoteRestaurant> commercants = new ArrayList<>();
+
+        commercantService.findAll().forEach(commercant -> {
+
+            Float note = commentaireCommercantsService.findNote(commercant.getId());
+
+            commercants.add(new PairNoteRestaurant(note, commercant));
+        });
+
+        return ResponseEntity.ok(commercants);
     }
 }
