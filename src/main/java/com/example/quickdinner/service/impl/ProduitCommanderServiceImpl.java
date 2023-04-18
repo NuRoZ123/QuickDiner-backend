@@ -22,4 +22,9 @@ public class ProduitCommanderServiceImpl implements ProduitCommanderService {
     public List<ProduitCommander> findAllByProduitId(int idProduit) {
         return produitCommanderRepository.findByProduitId(idProduit);
     }
+
+    @Override
+    public List<ProduitCommander> saveAll(List<ProduitCommander> produitCommanders) {
+        return produitCommanderRepository.saveAll(produitCommanders);
+    }
 }

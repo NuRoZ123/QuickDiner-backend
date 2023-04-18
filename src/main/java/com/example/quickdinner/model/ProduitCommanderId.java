@@ -13,6 +13,6 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class ProduitCommanderId implements Serializable {
 
-    private Long commande;
-    private Long produit;
+    private int commande;
+    private int produit;
 }

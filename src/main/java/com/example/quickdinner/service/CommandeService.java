@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface CommandeService {
     List<Commande> findAllByUtilisateurId(int idUtilisateur);
+    Commande save(Commande commande);
 }

@@ -21,4 +21,9 @@ public class CommandeServiceImpl implements CommandeService {
     public List<Commande> findAllByUtilisateurId(int idUtilisateur) {
         return commandeRepository.findAllByUtilisateurId(idUtilisateur);
     }
+
+    @Override
+    public Commande save(Commande commande) {
+        return commandeRepository.save(commande);
+    }
 }
