@@ -26,4 +26,9 @@ public class ProduitPanierServiceImpl implements ProduitPanierService {
     public void deleteProduit(ProduitPanier produitPanier) {
         produitPanierRepository.delete(produitPanier.getPanier().getId(), produitPanier.getProduit().getId());
     }
+
+    @Override
+    public ProduitPanier save(ProduitPanier produitPanier) {
+        return produitPanierRepository.save(produitPanier);
+    }
 }

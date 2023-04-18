@@ -57,23 +57,23 @@ public class CommercantController {
     @ApiOperation(value = "recupère toutes les commandes du restaurant",
     response = List.class)
     @GetMapping("/restaurants/commandes")
-    public ResponseEntity<List<Commande>> getCommandes(@RequestHeader("Authorization") String token) {
+    public ResponseEntity getCommandes(@RequestHeader("Authorization") String token) {
         Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
 
         if(user == null || !user.isPresent()) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest().body("Utilisateur non connecté");
         }
 
         Utilisateur connectedUser = user.get();
 
         if(!"Commercant".equals(connectedUser.getRole().getLibelle())) {
-            return ResponseEntity.status(401).body(null);
+            return ResponseEntity.status(401).body("Vous n'avez pas les droits pour accéder à cette ressource");
         }
 
         Optional<Commercant> commercantOpt = commercantService.findByUtilisateurId(connectedUser.getId());
 
         if(!commercantOpt.isPresent()) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest().body("Restaurant non trouvé");
         }
 
         Commercant commercant = commercantOpt.get();

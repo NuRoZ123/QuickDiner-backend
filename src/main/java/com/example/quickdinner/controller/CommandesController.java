@@ -41,10 +41,10 @@ public class CommandesController {
 
     @ApiOperation("Récupère les commandes d'un utilisateur: Si l'utilisateur est un client")
     @GetMapping("/user/commandes")
-    public ResponseEntity<List<Commande>> getCommandes(@RequestHeader("Authorization") String token) {
+    public ResponseEntity getCommandes(@RequestHeader("Authorization") String token) {
         Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
         if(user == null || !user.isPresent()) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest().body("Utilisateur non connecté");
         }
 
         Utilisateur connectedUser = user.get();
@@ -62,13 +62,13 @@ public class CommandesController {
                                          @RequestBody List<PairPoduitQuantite> produits) {
         Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
         if(user == null || !user.isPresent()) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest().body("Utilisateur non connecté");
         }
 
         Utilisateur connectedUser = user.get();
 
         if(!"Client".equals(connectedUser.getRole().getLibelle())) {
-            return ResponseEntity.status(401).body(null);
+            return ResponseEntity.status(401).body("Vous n'avez pas les droits pour accéder à cette ressource");
         }
 
         Commande commande = Commande.builder()

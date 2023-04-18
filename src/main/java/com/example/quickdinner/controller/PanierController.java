@@ -37,16 +37,16 @@ public class PanierController {
 
     @ApiOperation("Récupère le panier de produit d'un utilisateur")
     @GetMapping("/user/panier")
-    public ResponseEntity<Panier> getPanier(@RequestHeader("Authorization") String token) {
+    public ResponseEntity getPanier(@RequestHeader("Authorization") String token) {
         Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
         if(user == null || !user.isPresent()) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest().body("Utilisateur non connecté");
         }
 
         Utilisateur connectedUser = user.get();
 
         if(!"Client".equals(connectedUser.getRole().getLibelle())) {
-            return ResponseEntity.status(401).body(null);
+            return ResponseEntity.status(401).body("Vous n'avez pas les droits pour accéder à cette ressource");
         }
 
         return ResponseEntity.ok(connectedUser.getPanier());
@@ -57,27 +57,31 @@ public class PanierController {
     public ResponseEntity addPanier(@RequestHeader("Authorization") String token,
                                     @RequestBody PairPoduitQuantite pairPoduitQuantite) {
 
+        if(pairPoduitQuantite.getQuantite() <= 0) {
+            return ResponseEntity.badRequest().body("le nombre de produit doit être supérieur à 0");
+        }
+
         Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
 
         if(user == null || !user.isPresent()) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest().body("Utilisateur non connecté");
         }
 
         Utilisateur connectedUser = user.get();
 
         if(!"Client".equals(connectedUser.getRole().getLibelle())) {
-            return ResponseEntity.status(401).body(null);
+            return ResponseEntity.status(401).body("Vous n'avez pas les droits pour accéder à cette ressource");
         }
 
         Panier panier = connectedUser.getPanier();
         Produit produit = produitService.findById(pairPoduitQuantite.getId()).orElse(null);
 
         if(produit == null) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest().body("Le produit n'existe pas");
         }
 
         if(panier.hasProduit(produit)) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest().body("Le produit est déjà dans le panier");
         }
 
         panier.addProduit(ProduitPanier.builder().panier(panier).produit(produit).quantite(pairPoduitQuantite.getQuantite()).build());
@@ -93,34 +97,78 @@ public class PanierController {
         Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
 
         if(user == null || !user.isPresent()) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest().body("Utilisateur non connecté");
         }
 
         Utilisateur connectedUser = user.get();
 
         if(!"Client".equals(connectedUser.getRole().getLibelle())) {
-            return ResponseEntity.status(401).body(null);
+            return ResponseEntity.status(401).body("Vous n'avez pas les droits pour accéder à cette ressource");
         }
 
         Panier panier = connectedUser.getPanier();
         Produit produit = produitService.findById(idProduit).orElse(null);
 
         if(produit == null) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest().body("Le produit n'existe pas");
         }
 
         if(!panier.hasProduit(produit)) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest().body("Le produit n'est pas dans le panier");
         }
 
         Optional<ProduitPanier> produitPanier = panier.getProduitsToProduitPanier(produit);
 
         if(!produitPanier.isPresent()) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest().body("Le produit n'est pas dans le panier");
         }
 
         produitPanierService.deleteProduit(produitPanier.get());
 
         return ResponseEntity.status(204).body(null);
     }
+
+    @ApiOperation("Modifie la quantité d'un produit du panier d'un utilisateur")
+    @PutMapping("/user/panier")
+    public ResponseEntity modifyPanier(@RequestHeader("Authorization") String token,
+                                       @RequestBody PairPoduitQuantite pairPoduitQuantite) {
+        if(pairPoduitQuantite.getQuantite() <= 0) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
+        Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
+
+        if(user == null || !user.isPresent()) {
+            return ResponseEntity.badRequest().body("Utilisateur non connecté");
+        }
+
+        Utilisateur connectedUser = user.get();
+
+        if(!"Client".equals(connectedUser.getRole().getLibelle())) {
+            return ResponseEntity.status(401).body("Vous n'avez pas les droits pour accéder à cette ressource");
+        }
+
+        Panier panier = connectedUser.getPanier();
+        Produit produit = produitService.findById(pairPoduitQuantite.getId()).orElse(null);
+
+        if(produit == null) {
+            return ResponseEntity.badRequest().body("Le produit n'existe pas");
+        }
+
+        if(!panier.hasProduit(produit)) {
+            return ResponseEntity.badRequest().body("Le produit n'est pas dans le panier");
+        }
+
+        Optional<ProduitPanier> produitPanier = panier.getProduitsToProduitPanier(produit);
+
+        if(!produitPanier.isPresent()) {
+            return ResponseEntity.badRequest().body("Le produit n'est pas dans le panier");
+        }
+
+        produitPanier.get().setQuantite(pairPoduitQuantite.getQuantite());
+        produitPanierService.save(produitPanier.get());
+
+        return ResponseEntity.status(204).body(null);
+    }
+
 }
