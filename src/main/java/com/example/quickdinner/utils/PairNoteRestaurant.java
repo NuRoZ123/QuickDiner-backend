@@ -12,7 +12,7 @@ public class PairNoteRestaurant {
     }
 
     public Float getNote() {
-        return note;
+        return ((float) Math.round(note * 100)) / 100;
     }
 
     public void setNote(Float note) {
