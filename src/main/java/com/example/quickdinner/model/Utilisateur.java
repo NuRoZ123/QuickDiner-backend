@@ -1,10 +1,9 @@
 package com.example.quickdinner.model;
 
-import io.swagger.annotations.ApiModelProperty;
-import javax.persistence.*;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
-import org.json.JSONObject;
+
+import javax.persistence.*;
 
 @Builder
 @AllArgsConstructor
@@ -21,11 +20,15 @@ public class Utilisateur {
     private String nom;
     private String prenom;
     private String email;
+
+    @JsonIgnore
     private String password;
     @ManyToOne
+    @JsonIgnore
     private Role role;
 
     @ManyToOne
+    @JsonIgnore
     private Panier panier;
 
     @Override

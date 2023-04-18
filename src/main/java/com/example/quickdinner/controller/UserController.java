@@ -197,4 +197,15 @@ public class UserController {
         utilisateurService.save(connectedUser);
         return ResponseEntity.ok(Jwt.generate(connectedUser));
     }
+
+    @ApiOperation("Récupère l'utilisateur connecté")
+    @GetMapping("/user")
+    public ResponseEntity<Utilisateur> get(@RequestHeader("Authorization") String token) {
+        Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
+        if(user == null || !user.isPresent()) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
+        return ResponseEntity.ok(user.get());
+    }
 }
