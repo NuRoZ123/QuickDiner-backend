@@ -41,7 +41,7 @@ public class CommercantController {
     @ApiOperation(value = "recupère tous les commerçans (restaurant)",
     response = List.class)
     @GetMapping("/restaurants")
-    public ResponseEntity<List<PairNoteRestaurant>> register() {
+    public ResponseEntity<List<PairNoteRestaurant>> getRestaurant() {
         List<PairNoteRestaurant> commercants = new ArrayList<>();
 
         commercantService.findAll().forEach(commercant -> {
