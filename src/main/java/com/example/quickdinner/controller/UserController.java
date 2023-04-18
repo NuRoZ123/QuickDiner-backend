@@ -2,6 +2,7 @@ package com.example.quickdinner.controller;
 
 import com.example.quickdinner.model.Commercant;
 import com.example.quickdinner.model.Panier;
+import com.example.quickdinner.model.Role;
 import com.example.quickdinner.model.Utilisateur;
 import com.example.quickdinner.service.CommercantService;
 import com.example.quickdinner.service.PanierService;
@@ -20,7 +21,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/api")
@@ -258,5 +261,15 @@ public class UserController {
 
         user.get().setPassword(null);
         return ResponseEntity.ok(user.get());
+    }
+
+    @ApiOperation("Récupère les types de comptes")
+    @GetMapping("/user/types")
+    public ResponseEntity<List<String>> getTypes() {
+        List<String> lesRoles = roleService.findAll().stream()
+                .map(Role::getLibelle)
+                .filter(libelle -> !"Admin".equals(libelle))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(lesRoles);
     }
 }
