@@ -4,6 +4,7 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.util.List;
+import java.util.Objects;
 
 @Builder
 @AllArgsConstructor
@@ -18,6 +19,16 @@ public class Panier {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToMany(targetEntity = Produit.class, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<Produit> produits;
+    @OneToMany(mappedBy = "panier", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<ProduitPanier> produitPaniers;
+
+    public void addProduit(ProduitPanier produitPanier) {
+        this.produitPaniers.add(produitPanier);
+    }
+
+    public boolean hasProduit(Produit produit) {
+        return this.produitPaniers.stream()
+                .anyMatch(produitPanier ->
+                        Objects.equals(produitPanier.getProduit().getId(), produit.getId()));
+    }
 }

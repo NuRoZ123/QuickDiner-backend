@@ -121,21 +121,4 @@ public class UserController {
         Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
         return ResponseEntity.ok(user != null && user.isPresent());
     }
-
-    @ApiOperation("Récupère le panier de produit d'un utilisateur")
-    @GetMapping("/user/panier")
-    public ResponseEntity<Panier> getPanier(@RequestHeader("Authorization") String token) {
-        Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
-        if(user == null || !user.isPresent()) {
-            return ResponseEntity.badRequest().body(null);
-        }
-
-        Utilisateur connectedUser = user.get();
-
-        if(!"Client".equals(connectedUser.getRole().getLibelle())) {
-            return ResponseEntity.status(401).body(null);
-        }
-
-        return ResponseEntity.ok(connectedUser.getPanier());
-    }
 }
