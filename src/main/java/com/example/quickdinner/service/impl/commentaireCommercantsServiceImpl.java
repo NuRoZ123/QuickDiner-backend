@@ -1,6 +1,8 @@
 package com.example.quickdinner.service.impl;
 
 import com.example.quickdinner.model.CommentaireCommercants;
+import com.example.quickdinner.model.Commercant;
+import com.example.quickdinner.model.Utilisateur;
 import com.example.quickdinner.repository.CommentaireCommercantsRepository;
 import com.example.quickdinner.service.CommentaireCommercantsService;
 import lombok.extern.java.Log;
@@ -32,6 +34,16 @@ public class commentaireCommercantsServiceImpl implements CommentaireCommercants
 
 
         return total;
+    }
+
+    @Override
+    public void deleteAllByUtilisateur(Utilisateur utilisateur) {
+        commentaireCommercantsRepository.deleteAllByUtilisateur(utilisateur.getId());
+    }
+
+    @Override
+    public void deleteAllByCommercant(Commercant commercant) {
+        commentaireCommercantsRepository.deleteAllByCommercant(commercant.getId());
     }
 }
 

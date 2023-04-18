@@ -1,6 +1,7 @@
 package com.example.quickdinner.service.impl;
 
 import com.example.quickdinner.model.Commercant;
+import com.example.quickdinner.model.Utilisateur;
 import com.example.quickdinner.repository.CommercantRepository;
 import com.example.quickdinner.service.CommercantService;
 import lombok.extern.java.Log;
@@ -26,5 +27,10 @@ public class CommercantServiceImpl implements CommercantService {
     @Override
     public Optional<Commercant> findByUtilisateurId(int idUtilisateur) {
         return this.commercantRepository.findByManagerId(idUtilisateur);
+    }
+
+    @Override
+    public void deleteByManager(Utilisateur manager) {
+        this.commercantRepository.deleteByManager(manager.getId());
     }
 }

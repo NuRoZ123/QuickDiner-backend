@@ -20,4 +20,9 @@ public class PanierServiceImpl implements PanierService {
     public Panier save(Panier panier) {
         return panierRepository.save(panier);
     }
+
+    @Override
+    public void delete(Panier panier) {
+        panierRepository.delete(panier);
+    }
 }

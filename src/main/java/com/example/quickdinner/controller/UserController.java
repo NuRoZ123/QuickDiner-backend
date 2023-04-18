@@ -14,6 +14,7 @@ import io.swagger.annotations.ApiParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -120,5 +121,27 @@ public class UserController {
     public ResponseEntity<Boolean> checkToken(@RequestHeader("Authorization") String token) {
         Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
         return ResponseEntity.ok(user != null && user.isPresent());
+    }
+
+    @ApiOperation("Supprime l'utilisateur connecté")
+    @DeleteMapping("/user")
+    @Transactional
+    public ResponseEntity delete(@RequestHeader("Authorization") String token) {
+        Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
+        if(user == null || !user.isPresent()) {
+            return ResponseEntity.badRequest().body("Utilisateur non connecté");
+        }
+
+        Utilisateur connectedUser = user.get();
+
+        if("Admin".equals(connectedUser.getRole().getLibelle())) {
+            utilisateurService.deleteAdmin(connectedUser);
+        } else if("Client".equals(connectedUser.getRole().getLibelle())) {
+            utilisateurService.deleteClient(connectedUser);
+        } else {
+            utilisateurService.deleteCommercant(connectedUser);
+        }
+
+        return ResponseEntity.ok("Utilisateur supprimé");
     }
 }

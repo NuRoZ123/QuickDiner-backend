@@ -1,5 +1,7 @@
 package com.example.quickdinner.service.impl;
 
+import com.example.quickdinner.model.Commande;
+import com.example.quickdinner.model.Produit;
 import com.example.quickdinner.model.ProduitCommander;
 import com.example.quickdinner.repository.ProduitCommanderRepository;
 import com.example.quickdinner.service.ProduitCommanderService;
@@ -26,5 +28,15 @@ public class ProduitCommanderServiceImpl implements ProduitCommanderService {
     @Override
     public List<ProduitCommander> saveAll(List<ProduitCommander> produitCommanders) {
         return produitCommanderRepository.saveAll(produitCommanders);
+    }
+
+    @Override
+    public void deleteAllByCommande(Commande commande) {
+        produitCommanderRepository.deleteAllByCommande(commande.getId());
+    }
+
+    @Override
+    public void deleteAllByProduit(Produit produit) {
+        produitCommanderRepository.deleteAllByProduit(produit.getId());
     }
 }

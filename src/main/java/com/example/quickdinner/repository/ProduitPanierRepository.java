@@ -21,4 +21,9 @@ public interface ProduitPanierRepository extends JpaRepository<ProduitPanier, Pr
     @Modifying
     @Query("DELETE FROM ProduitPanier WHERE panier.id = :panierId")
     void deleteAllByPanier(@Param("panierId") int panierId);
+
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM ProduitPanier WHERE produit.id = :produitId")
+    void deleteAllByProduit(@Param("produitId") int produitId);
 }

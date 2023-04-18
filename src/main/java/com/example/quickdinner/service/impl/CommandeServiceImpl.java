@@ -26,4 +26,9 @@ public class CommandeServiceImpl implements CommandeService {
     public Commande save(Commande commande) {
         return commandeRepository.save(commande);
     }
+
+    @Override
+    public void delete(Commande commande) {
+        commandeRepository.delete(commande.getId());
+    }
 }

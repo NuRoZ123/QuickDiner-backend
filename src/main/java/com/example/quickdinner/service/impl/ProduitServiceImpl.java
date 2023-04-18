@@ -27,4 +27,9 @@ public class ProduitServiceImpl implements ProduitService {
     public Optional<Produit> findById(int id) {
         return produitRepository.findById(id);
     }
+
+    @Override
+    public void delete(Produit produit) {
+        produitRepository.delete(produit.getId());
+    }
 }
