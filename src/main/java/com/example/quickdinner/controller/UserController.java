@@ -23,6 +23,7 @@ import java.util.Optional;
 
 @Controller
 @RequestMapping("/api")
+@CrossOrigin(origins = {"*"})
 public class UserController {
 
     private final UtilisateurService utilisateurService;

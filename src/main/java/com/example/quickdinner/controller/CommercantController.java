@@ -7,6 +7,7 @@ import com.example.quickdinner.utils.PairNoteRestaurant;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +18,7 @@ import java.util.Optional;
 
 @Controller
 @RequestMapping("/api")
+@CrossOrigin(origins = {"*"})
 public class CommercantController {
 
     private final CommercantService commercantService;
