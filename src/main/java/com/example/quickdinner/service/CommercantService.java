@@ -11,4 +11,6 @@ public interface CommercantService {
     Optional<Commercant> findById(int id);
     Optional<Commercant> findByUtilisateurId(int idUtilisateur);
     void deleteByManager(Utilisateur manager);
+
+    void save(Commercant commercant);
 }

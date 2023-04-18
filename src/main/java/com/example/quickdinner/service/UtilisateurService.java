@@ -7,7 +7,7 @@ import java.util.Optional;
 public interface UtilisateurService {
     Optional<Utilisateur> findByEmail(String email);
 
-    void save(Utilisateur utilisateur);
+    Utilisateur save(Utilisateur utilisateur);
     void deleteAdmin(Utilisateur utilisateur);
     void deleteClient(Utilisateur utilisateur);
     void deleteCommercant(Utilisateur utilisateur);

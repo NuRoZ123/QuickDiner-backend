@@ -46,8 +46,8 @@ public class UtilisateurServiceImpl implements UtilisateurService {
     }
 
     @Override
-    public void save(Utilisateur utilisateur) {
-        utilisateurRepository.save(utilisateur);
+    public Utilisateur save(Utilisateur utilisateur) {
+        return utilisateurRepository.save(utilisateur);
     }
 
     @Override

@@ -1,11 +1,14 @@
 package com.example.quickdinner.controller;
 
+import com.example.quickdinner.model.Commercant;
 import com.example.quickdinner.model.Panier;
 import com.example.quickdinner.model.Utilisateur;
+import com.example.quickdinner.service.CommercantService;
 import com.example.quickdinner.service.PanierService;
 import com.example.quickdinner.service.RoleService;
 import com.example.quickdinner.service.UtilisateurService;
 import com.example.quickdinner.utils.Jwt;
+import com.example.quickdinner.utils.TripleUtilisateurCommercantType;
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
 import io.swagger.annotations.ApiImplicitParam;
@@ -27,23 +30,37 @@ public class UserController {
     private final UtilisateurService utilisateurService;
     private final RoleService roleService;
     private final PanierService panierService;
+    private final CommercantService commercantService;
 
-    public UserController(UtilisateurService utilisateurService,
-                          RoleService roleService, PanierService panierService) {
+    public UserController(UtilisateurService utilisateurService, RoleService roleService,
+                          PanierService panierService, CommercantService commercantService) {
         this.utilisateurService = utilisateurService;
         this.roleService = roleService;
         this.panierService = panierService;
+        this.commercantService = commercantService;
     }
 
     @ApiOperation("Enregistre un nouvelle utilisateur")
-    @ApiImplicitParam(name = "Utilisateur",
-            value = "{\"nom\": \"string\", \"prenom\": \"string\", \"email\": \"string\", \"password\": \"string\"}",
+    @ApiImplicitParam(name = "Utilisateur et Restaurant",
+            value = "{\"utilisateur: " +
+                    "{\"nom\": \"string\", \"prenom\": \"string\", \"email\": \"string\", \"password\": \"string\"}," +
+                    "\"restaurant\": " +
+                    "{\"nom\": \"string\", \"adresse\": \"string\", \"image\": \"string\"}, " +
+                    "\"type\": \"string\"}",
             required = true,
             dataType = "object",
             paramType = "body")
     @PostMapping("/user/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<String> register(@ApiParam(hidden = true) @RequestBody Utilisateur utilisateur) {
+    public ResponseEntity<String> register(@ApiParam(hidden = true) @RequestBody TripleUtilisateurCommercantType pair) {
+        Utilisateur utilisateur = pair.getUtilisateur();
+        Commercant restaurant = pair.getRestaurant();
+        String type = pair.getType();
+
+        if(utilisateur.getId() != null) {
+            return ResponseEntity.badRequest().body("Id is not required");
+        }
+
         if(utilisateur.getNom() == null || utilisateur.getNom().trim().isEmpty()) {
             return ResponseEntity.badRequest().body("Nom is required");
         }
@@ -73,15 +90,48 @@ public class UserController {
                 Argon2Factory.Argon2Types.ARGON2id, 32, 64);
 
         utilisateur.setPassword(argon2.hash(4, 1024 * 1024, 8, utilisateur.getPassword()));
-        utilisateur.setRole(roleService.findByLibelle("Client").orElse(null));
 
-        Panier panier = Panier.builder().build();
-        panier = panierService.save(panier);
+        if("Commercant".equals(type)) {
+            utilisateur.setRole(roleService.findByLibelle("Commercant").orElse(null));
 
-        utilisateur.setPanier(panier);
+            if(restaurant == null) {
+                return ResponseEntity.badRequest().body("Restaurant is required");
+            }
 
-        utilisateurService.save(utilisateur);
-        return ResponseEntity.ok("User registered");
+            if(restaurant.getId() != null) {
+                return ResponseEntity.badRequest().body("Id is not required");
+            }
+
+            if(restaurant.getNom() == null || restaurant.getNom().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Nom of restaurant is required");
+            }
+
+            if(restaurant.getAdresse() == null || restaurant.getAdresse().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Adresse of restaurant is required");
+            }
+
+            if(restaurant.getImage() == null || restaurant.getImage().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Image of restaurant is required");
+            }
+
+            Utilisateur newUser = utilisateurService.save(utilisateur);
+
+            restaurant.setManager(newUser);
+            commercantService.save(restaurant);
+
+        } else if("Client".equals(type)) {
+            utilisateur.setRole(roleService.findByLibelle("Client").orElse(null));
+
+            Panier panier = Panier.builder().build();
+            panier = panierService.save(panier);
+
+            utilisateur.setPanier(panier);
+            utilisateurService.save(utilisateur);
+        } else {
+            return ResponseEntity.badRequest().body("Type is not valid");
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(Jwt.generate(utilisateur));
     }
 
     @ApiOperation("Connecte un utilisateur")
@@ -206,6 +256,7 @@ public class UserController {
             return ResponseEntity.badRequest().body(null);
         }
 
+        user.get().setPassword(null);
         return ResponseEntity.ok(user.get());
     }
 }

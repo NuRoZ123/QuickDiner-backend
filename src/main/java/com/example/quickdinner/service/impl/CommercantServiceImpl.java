@@ -38,4 +38,9 @@ public class CommercantServiceImpl implements CommercantService {
     public void deleteByManager(Utilisateur manager) {
         this.commercantRepository.deleteByManager(manager.getId());
     }
+
+    @Override
+    public void save(Commercant commercant) {
+        this.commercantRepository.save(commercant);
+    }
 }

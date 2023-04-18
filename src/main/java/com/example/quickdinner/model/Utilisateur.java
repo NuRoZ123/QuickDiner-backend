@@ -21,7 +21,6 @@ public class Utilisateur {
     private String prenom;
     private String email;
 
-    @JsonIgnore
     private String password;
     @ManyToOne
     @JsonIgnore
