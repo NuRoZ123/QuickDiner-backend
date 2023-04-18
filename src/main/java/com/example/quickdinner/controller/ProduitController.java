@@ -3,9 +3,7 @@ package com.example.quickdinner.controller;
 import com.example.quickdinner.model.Commercant;
 import com.example.quickdinner.model.Produit;
 import com.example.quickdinner.model.Utilisateur;
-import com.example.quickdinner.service.CommercantService;
-import com.example.quickdinner.service.ProduitService;
-import com.example.quickdinner.service.UtilisateurService;
+import com.example.quickdinner.service.*;
 import com.example.quickdinner.utils.Jwt;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
@@ -15,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Controller
@@ -25,12 +24,17 @@ public class ProduitController {
     private ProduitService produitService;
     private CommercantService commercantService;
     private UtilisateurService utilisateurService;
+    private ProduitCommanderService produitCommanderService;
+    private ProduitPanierService produitPanierService;
 
     ProduitController(ProduitService produitService, CommercantService commercantService,
-                      UtilisateurService utilisateurService) {
+                      UtilisateurService utilisateurService, ProduitCommanderService produitCommanderService,
+                      ProduitPanierService produitPanierService) {
         this.produitService = produitService;
         this.commercantService = commercantService;
         this.utilisateurService = utilisateurService;
+        this.produitCommanderService = produitCommanderService;
+        this.produitPanierService = produitPanierService;
     }
 
     @ApiOperation(value = "Get all produits (menu) by restaurant",
@@ -90,5 +94,48 @@ public class ProduitController {
         produitService.save(produit);
 
         return ResponseEntity.status(201).body(null);
+    }
+
+    @ApiOperation(value = "Manager delete a produit")
+    @DeleteMapping("/produits/{idProduit}")
+    public ResponseEntity deleteProduit(@RequestHeader("Authorization") String token, @PathVariable Integer idProduit) {
+
+        Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
+        if(user == null || !user.isPresent()) {
+            return ResponseEntity.badRequest().body("Utilisateur non connecté");
+        }
+
+        Utilisateur connectedUser = user.get();
+
+        if(!"Commercant".equals(connectedUser.getRole().getLibelle())) {
+            return ResponseEntity.badRequest().body("Vous n'avez pas les droits pour accéder à cette ressource");
+        }
+
+        Optional<Produit> produitOpt = produitService.findById(idProduit);
+
+        if(produitOpt == null || !produitOpt.isPresent()) {
+            return ResponseEntity.badRequest().body("Produit not found");
+        }
+
+        Produit produit = produitOpt.get();
+        Optional<Commercant> commercantOpt = commercantService.findByUtilisateurId(connectedUser.getId());
+
+        if(commercantOpt == null || !commercantOpt.isPresent()) {
+            return ResponseEntity.badRequest().body("Restaurant not found");
+        }
+
+        Commercant commercant = commercantOpt.get();
+        boolean produitIsFromCommercant = produitService.findAllByCommercant(commercant.getId()).stream()
+                .anyMatch(p -> Objects.equals(p.getId(), produit.getId()));
+
+        if(!produitIsFromCommercant) {
+            return ResponseEntity.badRequest().body("Vous n'avez pas les droits pour accéder à cette ressource");
+        }
+
+        produitPanierService.deleteAllByProduit(produit);
+        produitCommanderService.deleteAllByProduit(produit);
+        produitService.delete(produit);
+
+        return ResponseEntity.status(200).body(null);
     }
 }

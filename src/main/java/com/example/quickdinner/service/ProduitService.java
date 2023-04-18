@@ -9,6 +9,5 @@ public interface ProduitService {
     List<Produit> findAllByCommercant(int idCommercant);
     Optional<Produit> findById(int id);
     void delete(Produit produit);
-
     Produit save(Produit produit);
 }
