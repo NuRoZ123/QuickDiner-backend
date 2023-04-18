@@ -52,8 +52,7 @@ public class ProduitController {
             dataType = "object",
             paramType = "body")
     @PostMapping("/produits")
-    public ResponseEntity createProduit(@RequestHeader("Authorization") String token, @ApiParam(hidden = true)
-    @RequestBody List<Produit> produits) {
+    public ResponseEntity createProduit(@RequestHeader("Authorization") String token, @ApiParam(hidden = true) @RequestBody List<Produit> produits) {
 
         Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
         if(user == null || !user.isPresent()) {
@@ -128,6 +127,58 @@ public class ProduitController {
         produitPanierService.deleteAllByProduit(produit);
         produitCommanderService.deleteAllByProduit(produit);
         produitService.delete(produit);
+
+        return ResponseEntity.status(200).body(null);
+    }
+
+    @ApiOperation(value = "Manager update a produit")
+    @PutMapping("/produits")
+    public ResponseEntity updateProduit(@RequestHeader("Authorization") String token, @RequestBody Produit produit) {
+        Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
+        if(user == null || !user.isPresent()) {
+            return ResponseEntity.badRequest().body("Utilisateur non connecté");
+        }
+
+        Utilisateur connectedUser = user.get();
+
+        if(!"Commercant".equals(connectedUser.getRole().getLibelle())) {
+            return ResponseEntity.badRequest().body("Vous n'avez pas les droits pour accéder à cette ressource");
+        }
+
+        Optional<Produit> produitOpt = produitService.findById(produit.getId());
+
+        if(produitOpt == null || !produitOpt.isPresent()) {
+            return ResponseEntity.badRequest().body("Produit not found");
+        }
+
+        Produit modifyProduit = produitOpt.get();
+        Optional<Commercant> commercantOpt = commercantService.findByUtilisateurId(connectedUser.getId());
+
+        if(commercantOpt == null || !commercantOpt.isPresent()) {
+            return ResponseEntity.badRequest().body("Restaurant not found");
+        }
+
+        Commercant commercant = commercantOpt.get();
+        boolean produitIsFromCommercant = produitService.findAllByCommercant(commercant.getId()).stream()
+                .anyMatch(p -> Objects.equals(p.getId(), modifyProduit.getId()));
+
+        if(!produitIsFromCommercant) {
+            return ResponseEntity.badRequest().body("Vous n'avez pas les droits pour accéder à cette ressource");
+        }
+
+        if(produit.getNom() != null && !produit.getNom().isEmpty()) {
+            modifyProduit.setNom(produit.getNom());
+        }
+
+        if(produit.getPrix() != null) {
+            modifyProduit.setPrix(produit.getPrix());
+        }
+
+        if(produit.getDescription() != null && !produit.getDescription().isEmpty()) {
+            modifyProduit.setDescription(produit.getDescription());
+        }
+
+        produitService.save(modifyProduit);
 
         return ResponseEntity.status(200).body(null);
     }

@@ -18,4 +18,9 @@ public interface ProduitRepository extends JpaRepository<Produit, Integer> {
     @Modifying
     @Query("DELETE FROM Produit WHERE id = :idProduit")
     void delete(@Param("idProduit") int idProduit);
+
+    @Transactional
+    @Modifying
+    @Query("UPDATE Produit SET nom = :nom, prix = :prix, description = :description WHERE id = :idProduit")
+    void update(@Param("idProduit") int idProduit, @Param("nom") String nom, @Param("prix") float prix, @Param("description") String description);
 }

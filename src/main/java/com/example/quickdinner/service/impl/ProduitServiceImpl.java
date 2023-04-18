@@ -37,4 +37,9 @@ public class ProduitServiceImpl implements ProduitService {
     public Produit save(Produit produit) {
         return produitRepository.save(produit);
     }
+
+    @Override
+    public void update(Produit produit) {
+        produitRepository.update(produit.getId(), produit.getNom(), produit.getPrix(), produit.getDescription());
+    }
 }
