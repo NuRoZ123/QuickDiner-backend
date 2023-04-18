@@ -32,4 +32,9 @@ public class ProduitServiceImpl implements ProduitService {
     public void delete(Produit produit) {
         produitRepository.delete(produit.getId());
     }
+
+    @Override
+    public Produit save(Produit produit) {
+        return produitRepository.save(produit);
+    }
 }
