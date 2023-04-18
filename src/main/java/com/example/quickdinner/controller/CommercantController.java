@@ -7,10 +7,7 @@ import com.example.quickdinner.utils.PairNoteRestaurant;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -114,6 +111,19 @@ public class CommercantController {
 
 
         return ResponseEntity.ok(commandes);
+    }
+
+    @ApiOperation(value = "recupère les infos du restaurant")
+    @GetMapping("/restaurants/{id}")
+    public ResponseEntity getRestaurantInfo(@PathVariable("id") int id) {
+        Optional<Commercant> commercant = commercantService.findById(id);
+        if(!commercant.isPresent()) {
+            return ResponseEntity.badRequest().body("Restaurant non trouvé");
+        }
+
+        Float note = commentaireCommercantsService.findNote(commercant.get().getId());
+
+        return ResponseEntity.ok(new PairNoteRestaurant(note, commercant.get()));
     }
 
 }
