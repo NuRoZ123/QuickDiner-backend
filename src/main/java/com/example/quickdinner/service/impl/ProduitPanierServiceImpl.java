@@ -1,5 +1,6 @@
 package com.example.quickdinner.service.impl;
 
+import com.example.quickdinner.model.Panier;
 import com.example.quickdinner.model.ProduitPanier;
 import com.example.quickdinner.repository.ProduitPanierRepository;
 import com.example.quickdinner.service.ProduitPanierService;
@@ -30,5 +31,10 @@ public class ProduitPanierServiceImpl implements ProduitPanierService {
     @Override
     public ProduitPanier save(ProduitPanier produitPanier) {
         return produitPanierRepository.save(produitPanier);
+    }
+
+    @Override
+    public void deleteAllByPanier(Panier panier) {
+        produitPanierRepository.deleteAllByPanier(panier.getId());
     }
 }

@@ -133,7 +133,7 @@ public class PanierController {
     public ResponseEntity modifyPanier(@RequestHeader("Authorization") String token,
                                        @RequestBody PairPoduitQuantite pairPoduitQuantite) {
         if(pairPoduitQuantite.getQuantite() <= 0) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest().body("le nombre de produit doit être supérieur à 0");
         }
 
         Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
@@ -171,4 +171,29 @@ public class PanierController {
         return ResponseEntity.status(204).body(null);
     }
 
+    @ApiOperation("Vide le panier d'un utilisateur")
+    @DeleteMapping("/user/panier/all")
+    public ResponseEntity clearPanier(@RequestHeader("Authorization") String token) {
+        Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
+
+        if(user == null || !user.isPresent()) {
+            return ResponseEntity.badRequest().body("Utilisateur non connecté");
+        }
+
+        Utilisateur connectedUser = user.get();
+
+        if(!"Client".equals(connectedUser.getRole().getLibelle())) {
+            return ResponseEntity.status(401).body("Vous n'avez pas les droits pour accéder à cette ressource");
+        }
+
+        Panier panier = connectedUser.getPanier();
+
+        if(panier.getProduitPaniers().isEmpty()) {
+            return ResponseEntity.badRequest().body("Le panier est déjà vide");
+        }
+
+        produitPanierService.deleteAllByPanier(panier);
+
+        return ResponseEntity.status(204).body(null);
+    }
 }
