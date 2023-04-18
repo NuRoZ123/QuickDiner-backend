@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/api")
@@ -45,13 +46,14 @@ public class ProduitController {
     }
 
     @ApiOperation(value = "Manager can create a new produit")
-    @ApiImplicitParam(name = "Produit",
-            value = "{\"nom\": \"string\", \"prix\": \"float\", \"description\": \"string\"}",
+    @ApiImplicitParam(name = "Produits",
+            value = "[{\"nom\": \"string\", \"prix\": float, \"description\": \"string\"}]",
             required = true,
             dataType = "object",
             paramType = "body")
     @PostMapping("/produits")
-    public ResponseEntity createProduit(@RequestHeader("Authorization") String token, @ApiParam(hidden = true) @RequestBody Produit produit) {
+    public ResponseEntity createProduit(@RequestHeader("Authorization") String token, @ApiParam(hidden = true)
+    @RequestBody List<Produit> produits) {
 
         Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
         if(user == null || !user.isPresent()) {
@@ -70,28 +72,19 @@ public class ProduitController {
             return ResponseEntity.badRequest().body("Utilisateur non commercant");
         }
 
-        if(produit == null) {
-            return ResponseEntity.badRequest().body("Produit is null");
+        produits = produits.stream()
+                .filter(produit -> produit != null && produit.getId() == null && (produit.getNom() != null && !produit.getNom().isEmpty())
+                        && produit.getPrix() != null && (produit.getCommercant() == null))
+                .collect(Collectors.toList());
+
+        if(produits.isEmpty()) {
+            return ResponseEntity.badRequest().body("Produits invalides");
         }
 
-        if(produit.getId() != null) {
-            return ResponseEntity.badRequest().body("Produit id is not required");
-        }
-
-        if(produit.getNom() == null || produit.getNom().isEmpty()) {
-            return ResponseEntity.badRequest().body("Produit name is required");
-        }
-
-        if(produit.getPrix() == null) {
-            return ResponseEntity.badRequest().body("Produit price is required");
-        }
-
-        if(produit.getCommercant() != null) {
-            return ResponseEntity.badRequest().body("commercant is not required");
-        }
-
-        produit.setCommercant(optionalCommercant.get());
-        produitService.save(produit);
+        produits.forEach(produit -> {
+            produit.setCommercant(optionalCommercant.get());
+            produitService.save(produit);
+        });
 
         return ResponseEntity.status(201).body(null);
     }
