@@ -144,4 +144,57 @@ public class UserController {
 
         return ResponseEntity.ok("Utilisateur supprimé");
     }
+
+    @ApiOperation("Modifie l'utilisateur connecté")
+    @ApiImplicitParam(name = "Utilisateur",
+            value = "{\"nom\": \"string\", \"prenom\": \"string\", \"email\": \"string\", \"password\": \"string\"}",
+            required = true,
+            dataType = "object",
+            paramType = "body")
+    @PutMapping("/user")
+    public ResponseEntity modify(@RequestHeader("Authorization") String token,
+                                 @ApiParam(hidden = true) @RequestBody Utilisateur utilisateur) {
+        Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
+        if(user == null || !user.isPresent()) {
+            return ResponseEntity.badRequest().body("Utilisateur non connecté");
+        }
+
+        Utilisateur connectedUser = user.get();
+        Optional<Utilisateur> emailExistUser = utilisateurService.findByEmail(utilisateur.getEmail());
+
+        if(utilisateur.getEmail() != null && !utilisateur.getEmail().trim().isEmpty()) {
+
+            if(utilisateur.getEmail().matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")
+                    && (!emailExistUser.isPresent() || emailExistUser.get().getId().equals(connectedUser.getId()))) {
+                connectedUser.setEmail(utilisateur.getEmail());
+            } else {
+                return ResponseEntity.badRequest().body("Email already exists");
+            }
+        }
+
+        if(utilisateur.getNom() != null && !utilisateur.getNom().trim().isEmpty()) {
+            connectedUser.setNom(utilisateur.getNom());
+        }
+
+        if(utilisateur.getPrenom() != null && !utilisateur.getPrenom().trim().isEmpty()) {
+            connectedUser.setPrenom(utilisateur.getPrenom());
+        }
+
+        if(utilisateur.getPassword() != null && !utilisateur.getPassword().trim().isEmpty()) {
+            if(utilisateur.getPassword().length() < 8 || !utilisateur.getPassword().matches(".*\\d.*")
+                    || !utilisateur.getPassword().matches(".*[a-z].*") || !utilisateur.getPassword().matches(".*[A-Z].*")
+                    || !utilisateur.getPassword().matches(".*[!@#$%^&*()_+].*")) {
+                return ResponseEntity.badRequest().body("Password must be at least 8 characters, contain a number," +
+                        " a lowercase, an uppercase letter and a special character");
+            }
+
+            Argon2 argon2 = Argon2Factory.create(
+                    Argon2Factory.Argon2Types.ARGON2id, 32, 64);
+
+            connectedUser.setPassword(argon2.hash(4, 1024 * 1024, 8, utilisateur.getPassword()));
+        }
+
+        utilisateurService.save(connectedUser);
+        return ResponseEntity.ok(Jwt.generate(connectedUser));
+    }
 }
