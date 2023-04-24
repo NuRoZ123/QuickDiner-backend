@@ -21,6 +21,9 @@ public class Produit {
     private String description;
     private Float prix;
 
+    @Column(name= "image", columnDefinition = "LONGTEXT")
+    private String image;
+
     @ManyToOne(targetEntity = Commercant.class, fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false)
     @JsonIgnore
     private Commercant commercant;

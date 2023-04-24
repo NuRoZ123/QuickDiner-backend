@@ -1,5 +1,6 @@
 package com.example.quickdinner.controller;
 
+import com.example.quickdinner.QuickDinnerApplication;
 import com.example.quickdinner.model.Commercant;
 import com.example.quickdinner.model.Produit;
 import com.example.quickdinner.model.Utilisateur;
@@ -8,6 +9,7 @@ import com.example.quickdinner.utils.Jwt;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -42,12 +44,18 @@ public class ProduitController {
             response = List.class)
     @GetMapping("/produits/{idRestaurant}")
     public ResponseEntity<List<Produit>> findAllProduitsByRestaurant(@PathVariable Integer idRestaurant) {
-        return ResponseEntity.ok(produitService.findAllByCommercant(idRestaurant));
+        List<Produit> produits = produitService.findAllByCommercant(idRestaurant);
+
+        produits.forEach(produit -> {
+            produit.setImage(QuickDinnerApplication.getHost() + "/api/produits/" + produit.getId() + "/image");
+        });
+
+        return ResponseEntity.ok(produits);
     }
 
     @ApiOperation(value = "Manager can create a new produit")
     @ApiImplicitParam(name = "Produits",
-            value = "[{\"nom\": \"string\", \"prix\": float, \"description\": \"string\"}]",
+            value = "[{\"nom\": \"string\", \"prix\": float, \"description\": \"string\", \"image\": \"string\"}]",
             required = true,
             dataType = "object",
             paramType = "body")
@@ -73,7 +81,8 @@ public class ProduitController {
 
         produits = produits.stream()
                 .filter(produit -> produit != null && produit.getId() == null && (produit.getNom() != null && !produit.getNom().isEmpty())
-                        && produit.getPrix() != null && (produit.getCommercant() == null))
+                        && produit.getPrix() != null && (produit.getCommercant() == null)
+                        && (produit.getImage() != null && !produit.getImage().isEmpty()))
                 .collect(Collectors.toList());
 
         if(produits.isEmpty()) {
@@ -178,8 +187,32 @@ public class ProduitController {
             modifyProduit.setDescription(produit.getDescription());
         }
 
+        if(produit.getImage() != null && !produit.getImage().isEmpty()) {
+            modifyProduit.setImage(produit.getImage());
+        }
+
         produitService.save(modifyProduit);
 
         return ResponseEntity.status(200).body(null);
     }
+
+    @ApiOperation(value = "Récupèrer l'image du produits par son id")
+    @GetMapping(value = "/produits/{id}/image", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity getImage(@PathVariable("id") int id) {
+        Optional<Produit> produit = produitService.findById(id);
+        if(!produit.isPresent()) {
+            return ResponseEntity.badRequest().body("Produit non trouvé");
+        }
+
+        String b64 = produit.get().getImage();
+
+        if(b64 == null) {
+            return ResponseEntity.badRequest().body("Produit sans image");
+        }
+
+        byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(b64.substring(b64.indexOf(",") + 1));
+
+        return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(imageBytes);
+    }
+
 }
