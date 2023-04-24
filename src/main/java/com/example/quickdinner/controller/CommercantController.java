@@ -1,10 +1,12 @@
 package com.example.quickdinner.controller;
 
+import com.example.quickdinner.QuickDinnerApplication;
 import com.example.quickdinner.model.*;
 import com.example.quickdinner.service.*;
 import com.example.quickdinner.utils.Jwt;
 import com.example.quickdinner.utils.PairNoteRestaurant;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -44,6 +46,8 @@ public class CommercantController {
         commercantService.findAll().forEach(commercant -> {
 
             Float note = commentaireCommercantsService.findNote(commercant.getId());
+
+            commercant.setImage(QuickDinnerApplication.getHost() + "/api/restaurants/" + commercant.getId() + "/image");
 
             commercants.add(new PairNoteRestaurant(note, commercant));
         });
@@ -116,14 +120,32 @@ public class CommercantController {
     @ApiOperation(value = "recupère les infos du restaurant")
     @GetMapping("/restaurants/{id}")
     public ResponseEntity getRestaurantInfo(@PathVariable("id") int id) {
+        Optional<Commercant> commercantOpt = commercantService.findById(id);
+        if(!commercantOpt.isPresent()) {
+            return ResponseEntity.badRequest().body("Restaurant non trouvé");
+        }
+
+        Commercant commercant = commercantOpt.get();
+
+        Float note = commentaireCommercantsService.findNote(commercant.getId());
+        commercant.setImage(QuickDinnerApplication.getHost() + "/api/restaurants/" + commercant.getId() + "/image");
+
+        return ResponseEntity.ok(new PairNoteRestaurant(note, commercant));
+    }
+
+    @ApiOperation(value = "Récupèrer l'image du restau par son id")
+    @GetMapping(value = "/restaurants/{id}/image", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity getImage(@PathVariable("id") int id) {
         Optional<Commercant> commercant = commercantService.findById(id);
         if(!commercant.isPresent()) {
             return ResponseEntity.badRequest().body("Restaurant non trouvé");
         }
 
-        Float note = commentaireCommercantsService.findNote(commercant.get().getId());
+        String b64 = commercant.get().getImage();
 
-        return ResponseEntity.ok(new PairNoteRestaurant(note, commercant.get()));
+        byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(b64.substring(b64.indexOf(",") + 1));
+
+        return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(imageBytes);
     }
 
 }
