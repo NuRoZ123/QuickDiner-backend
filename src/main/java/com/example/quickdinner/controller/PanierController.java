@@ -1,5 +1,6 @@
 package com.example.quickdinner.controller;
 
+import com.example.quickdinner.QuickDinnerApplication;
 import com.example.quickdinner.model.Panier;
 import com.example.quickdinner.model.Produit;
 import com.example.quickdinner.model.ProduitPanier;
@@ -48,6 +49,11 @@ public class PanierController {
         if(!"Client".equals(connectedUser.getRole().getLibelle())) {
             return ResponseEntity.status(401).body("Vous n'avez pas les droits pour accéder à cette ressource");
         }
+
+        connectedUser.getPanier().getProduitPaniers().forEach(produitPanier ->
+                produitPanier.getProduit().setImage(QuickDinnerApplication.getHost() + "/api/produits/" +
+                        produitPanier.getProduit().getId() + "/image")
+        );
 
         return ResponseEntity.ok(connectedUser.getPanier());
     }
