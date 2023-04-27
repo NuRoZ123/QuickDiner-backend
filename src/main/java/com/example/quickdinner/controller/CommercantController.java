@@ -104,6 +104,7 @@ public class CommercantController {
 
             commande.getProduitsCommander().forEach(produitCommander -> {
                 if(produits.contains(produitCommander.getProduit())) {
+                    produitCommander.getProduit().setImage(QuickDinnerApplication.getHost() + "/api/produits/" + produitCommander.getProduit().getId() + "/image");
                     lesProduitsDuResteauSeulement.add(produitCommander);
                 }
             });

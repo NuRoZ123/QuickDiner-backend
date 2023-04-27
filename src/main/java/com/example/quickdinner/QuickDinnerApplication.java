@@ -13,7 +13,7 @@ import java.util.List;
 public class QuickDinnerApplication {
 	public static final List<Integer> commandesQueue = new ArrayList<>();
 	public static CommandeQueuObserver commandeQueuObserver = null;
-	public static final String ENV = "PROD";
+	public static final String ENV = "DEV";
 
 	public static String getHost() {
 		String host = "";

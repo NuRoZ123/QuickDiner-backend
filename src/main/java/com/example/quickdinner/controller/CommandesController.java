@@ -51,7 +51,14 @@ public class CommandesController {
         Utilisateur connectedUser = user.get();
 
         if("Client".equals(connectedUser.getRole().getLibelle())) {
-            return ResponseEntity.ok(commandeService.findAllByUtilisateurId(connectedUser.getId()));
+            List<Commande> commandes = commandeService.findAllByUtilisateurId(connectedUser.getId());
+            commandes.forEach(commande -> {
+                commande.getProduitsCommander().forEach(produitCommander -> {
+                    produitCommander.getProduit().setImage(QuickDinnerApplication.getHost() + "/api/produits/" + produitCommander.getProduit().getId() + "/image");
+                });
+            });
+
+            return ResponseEntity.ok(commandes);
         }
 
         return ResponseEntity.status(401).body(null);
