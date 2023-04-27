@@ -14,6 +14,11 @@ import java.util.Optional;
 public interface CommercantRepository extends JpaRepository<Commercant, Integer> {
     Optional<Commercant> findByManagerId(int idUtilisateur);
 
+//    @Transactional
+    // SELECT c.id, c.nom  from commercants c inner join produits p on c.id = p.commercant_id where p.id = 1;
+    @Query("SELECT c from Commercant c inner join Produit p on c.id = p.commercant.id where p.id = :idProduit")
+    Optional<Commercant> findByProduitsId(@Param("idProduit") int idProduit);
+
     @Transactional
     @Modifying
     @Query("delete from Commercant where manager.id = :manager")

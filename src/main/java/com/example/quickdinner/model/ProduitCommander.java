@@ -26,5 +26,10 @@ public class ProduitCommander {
     private Produit produit;
 
     private Integer quantite;
+
+    public String toJson() {
+
+        return "{\"produit\": " + produit.toJson() + ", \"quantite\": " + quantite +"}";
+    }
 }
 

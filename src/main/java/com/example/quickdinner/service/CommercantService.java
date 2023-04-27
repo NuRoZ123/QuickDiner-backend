@@ -10,6 +10,8 @@ public interface CommercantService {
     List<Commercant> findAll();
     Optional<Commercant> findById(int id);
     Optional<Commercant> findByUtilisateurId(int idUtilisateur);
+
+    Optional<Commercant> findByProduitId(int idProduit);
     void deleteByManager(Utilisateur manager);
 
     void save(Commercant commercant);

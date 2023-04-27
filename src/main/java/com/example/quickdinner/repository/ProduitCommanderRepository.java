@@ -14,6 +14,8 @@ import java.util.List;
 public interface ProduitCommanderRepository extends JpaRepository<ProduitCommander, Integer> {
     List<ProduitCommander> findByProduitId(int idProduit);
 
+    List<ProduitCommander> findByCommandeId(int idCommande);
+
     @Transactional
     @Modifying
     @Query("DELETE FROM ProduitCommander WHERE commande.id = :idCommande")

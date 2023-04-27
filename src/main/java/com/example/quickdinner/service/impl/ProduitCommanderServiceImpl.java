@@ -26,6 +26,11 @@ public class ProduitCommanderServiceImpl implements ProduitCommanderService {
     }
 
     @Override
+    public List<ProduitCommander> findAllByCommandeId(int idCommande) {
+        return produitCommanderRepository.findByCommandeId(idCommande);
+    }
+
+    @Override
     public List<ProduitCommander> saveAll(List<ProduitCommander> produitCommanders) {
         return produitCommanderRepository.saveAll(produitCommanders);
     }

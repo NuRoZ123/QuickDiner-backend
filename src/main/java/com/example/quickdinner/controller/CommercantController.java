@@ -99,8 +99,6 @@ public class CommercantController {
             }
         }
 
-        System.out.println(commandes);
-
         commandes.forEach(commande -> {
             List<ProduitCommander> lesProduitsDuResteauSeulement = new ArrayList<>();
 

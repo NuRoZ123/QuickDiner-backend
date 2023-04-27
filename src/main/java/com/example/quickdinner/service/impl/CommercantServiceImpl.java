@@ -35,6 +35,11 @@ public class CommercantServiceImpl implements CommercantService {
     }
 
     @Override
+    public Optional<Commercant> findByProduitId(int idProduit) {
+        return this.commercantRepository.findByProduitsId(idProduit);
+    }
+
+    @Override
     public void deleteByManager(Utilisateur manager) {
         this.commercantRepository.deleteByManager(manager.getId());
     }

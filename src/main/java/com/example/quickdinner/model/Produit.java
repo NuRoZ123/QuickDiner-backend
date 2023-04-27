@@ -1,5 +1,6 @@
 package com.example.quickdinner.model;
 
+import com.example.quickdinner.QuickDinnerApplication;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
@@ -27,4 +28,9 @@ public class Produit {
     @ManyToOne(targetEntity = Commercant.class, fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false)
     @JsonIgnore
     private Commercant commercant;
+
+    public String toJson() {
+        return "{\"id\":" + id + ",\"nom\":\"" + nom + "\",\"description\":\"" + description + "\",\"prix\":" + prix + ",\"image\":\"" +
+                QuickDinnerApplication.getHost() + "/api/produits/" + id + "/image\"}";
+    }
 }

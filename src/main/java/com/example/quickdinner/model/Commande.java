@@ -24,4 +24,18 @@ public class Commande {
     @ManyToOne
     @JsonIgnore
     private Utilisateur utilisateur;
+
+    public String toJson() {
+        StringBuilder json = new StringBuilder("{\"id\":" + id + ",\"produitsCommander\":[");
+
+        StringBuilder jsonProduitCommander = json;
+        produitsCommander.forEach(produitCommander -> {
+            jsonProduitCommander.append(produitCommander.toJson() + ",");
+        });
+
+        jsonProduitCommander.deleteCharAt(jsonProduitCommander.length() - 1);
+
+        json.append("]}");
+        return json.toString();
+    }
 }

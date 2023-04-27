@@ -7,6 +7,7 @@ import lombok.extern.java.Log;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Log
@@ -30,5 +31,10 @@ public class CommandeServiceImpl implements CommandeService {
     @Override
     public void delete(Commande commande) {
         commandeRepository.delete(commande.getId());
+    }
+
+    @Override
+    public Optional<Commande> findById(int id) {
+        return commandeRepository.findById(id);
     }
 }

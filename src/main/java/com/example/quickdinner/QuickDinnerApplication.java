@@ -1,13 +1,19 @@
 package com.example.quickdinner;
 
+import com.example.quickdinner.utils.CommandeQueuObserver;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @SpringBootApplication
 @EnableSwagger2
 public class QuickDinnerApplication {
-	public static final String ENV = "DEV";
+	public static final List<Integer> commandesQueue = new ArrayList<>();
+	public static CommandeQueuObserver commandeQueuObserver = null;
+	public static final String ENV = "PROD";
 
 	public static String getHost() {
 		String host = "";

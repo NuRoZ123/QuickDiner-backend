@@ -1,5 +1,6 @@
 package com.example.quickdinner.controller;
 
+import com.example.quickdinner.QuickDinnerApplication;
 import com.example.quickdinner.model.Commande;
 import com.example.quickdinner.model.Produit;
 import com.example.quickdinner.model.ProduitCommander;
@@ -96,8 +97,14 @@ public class CommandesController {
                                 .build())
                 .collect(Collectors.toList());
 
-
         produitCommanderService.saveAll(produitCommanders);
+
+        // websocket notification
+        QuickDinnerApplication.commandesQueue.add(finalCommande.getId());
+
+        if(QuickDinnerApplication.commandeQueuObserver != null) {
+            QuickDinnerApplication.commandeQueuObserver.update();
+        }
 
         return ResponseEntity.ok().build();
     }
