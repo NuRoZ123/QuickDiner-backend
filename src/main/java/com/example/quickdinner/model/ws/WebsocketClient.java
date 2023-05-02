@@ -4,19 +4,19 @@ import org.springframework.web.socket.WebSocketSession;
 
 public class WebsocketClient {
     private WebSocketSession session;
-    private int utilisateur;
+    private int utilisateurId;
 
     public WebsocketClient(WebSocketSession session) {
         this.session = session;
-        this.utilisateur = -1;
+        this.utilisateurId = -1;
     }
 
-    public void setUtilisateur(int utilisateur) {
-        this.utilisateur = utilisateur;
+    public void setUtilisateurId(int utilisateurId) {
+        this.utilisateurId = utilisateurId;
     }
 
-    public int getUtilisateur() {
-        return utilisateur;
+    public int getUtilisateurId() {
+        return utilisateurId;
     }
 
     public WebSocketSession getSession() {

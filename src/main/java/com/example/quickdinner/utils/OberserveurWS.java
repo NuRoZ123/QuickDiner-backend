@@ -1,5 +1,7 @@
 package com.example.quickdinner.utils;
 
+import com.example.quickdinner.model.Commande;
+
 public interface OberserveurWS {
-    void update();
+    void update(Commande commande);
 }

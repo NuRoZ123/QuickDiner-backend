@@ -5,14 +5,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @SpringBootApplication
 @EnableSwagger2
 public class QuickDinnerApplication {
-	public static final List<Integer> commandesQueue = new ArrayList<>();
-	public static final List<Integer> commandesTerminer = new ArrayList<>();
 	public static OberserveurWS commandeQueuObserver = null;
 	public static OberserveurWS playerCommandeObserver = null;
 	public static final String ENV = "PROD";

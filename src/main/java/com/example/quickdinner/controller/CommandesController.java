@@ -6,6 +6,7 @@ import com.example.quickdinner.model.Produit;
 import com.example.quickdinner.model.ProduitCommander;
 import com.example.quickdinner.model.Utilisateur;
 import com.example.quickdinner.model.enumeration.EtatProduitCommande;
+import com.example.quickdinner.model.enumeration.TypeCompteUtilisateur;
 import com.example.quickdinner.service.CommandeService;
 import com.example.quickdinner.service.ProduitCommanderService;
 import com.example.quickdinner.service.ProduitService;
@@ -48,18 +49,19 @@ public class CommandesController {
 
         Utilisateur connectedUser = user.get();
 
-        if("Client".equals(connectedUser.getRole().getLibelle())) {
-            List<Commande> commandes = commandeService.findAllByUtilisateurId(connectedUser.getId());
-            commandes.forEach(commande -> {
-                commande.getProduitsCommander().forEach(produitCommander -> {
-                    produitCommander.getProduit().setImage(QuickDinnerApplication.getHost() + "/api/produits/" + produitCommander.getProduit().getId() + "/image");
-                });
-            });
-
-            return ResponseEntity.ok(commandes);
+        if(!TypeCompteUtilisateur.Client.getType().equals(connectedUser.getRole().getLibelle())) {
+            return ResponseEntity.status(401).body(null);
         }
 
-        return ResponseEntity.status(401).body(null);
+        List<Commande> commandes = commandeService.findAllByUtilisateurId(connectedUser.getId());
+
+        commandes.forEach(commande ->
+                commande.getProduitsCommander().forEach(produitCommander ->
+                        produitCommander.getProduit().setImage(QuickDinnerApplication.getHost() + "/api/produits/" + produitCommander.getProduit().getId() + "/image")
+                )
+        );
+
+        return ResponseEntity.ok(commandes);
     }
 
     @ApiOperation("Permet à l'utilisateur de passer une commande")
@@ -73,7 +75,7 @@ public class CommandesController {
 
         Utilisateur connectedUser = user.get();
 
-        if(!"Client".equals(connectedUser.getRole().getLibelle())) {
+        if(!TypeCompteUtilisateur.Client.getType().equals(connectedUser.getRole().getLibelle())) {
             return ResponseEntity.status(401).body("Vous n'avez pas les droits pour accéder à cette ressource");
         }
 
@@ -81,7 +83,6 @@ public class CommandesController {
                 .utilisateur(connectedUser)
                 .build();
 
-        commande = commandeService.save(commande);
         Map<Integer, Produit> produitsMap = new HashMap<>();
 
         Commande finalCommande = commande;
@@ -103,13 +104,16 @@ public class CommandesController {
                                 .build())
                 .collect(Collectors.toList());
 
+        if(produitCommanders.isEmpty()) {
+            return ResponseEntity.badRequest().body("Aucun produit trouvé");
+        }
+
+        commandeService.save(commande);
         produitCommanderService.saveAll(produitCommanders);
 
         // websocket notification
-        QuickDinnerApplication.commandesQueue.add(finalCommande.getId());
-
         if(QuickDinnerApplication.commandeQueuObserver != null) {
-            QuickDinnerApplication.commandeQueuObserver.update();
+            QuickDinnerApplication.commandeQueuObserver.update(finalCommande);
         }
 
         return ResponseEntity.ok().build();
@@ -127,7 +131,7 @@ public class CommandesController {
 
         Utilisateur connectedUser = user.get();
 
-        if(!"Commercant".equals(connectedUser.getRole().getLibelle())) {
+        if(TypeCompteUtilisateur.Commercant.getType().equals(connectedUser.getRole().getLibelle())) {
             return ResponseEntity.status(401).body("Vous n'avez pas les droits pour accéder à cette ressource");
         }
 
@@ -138,23 +142,24 @@ public class CommandesController {
         }
 
         Commande commande = commandeOpt.get();
+
+        List<ProduitCommander> produitsCommanderASave = new ArrayList<>();
         commande.getProduitsCommander().forEach(produitCommander -> {
             if(Objects.equals(produitCommander.getProduit().getCommercant().getManager().getId(), connectedUser.getId())) {
                 produitCommander.setEtat(EtatProduitCommande.DONE.getLibelle());
 
-                produitCommanderService.save(produitCommander);
+                produitsCommanderASave.add(produitCommander);
             }
         });
 
-
+        produitCommanderService.saveAll(produitsCommanderASave);
 
         // Check si la commande est completer par tlm
         boolean isDone = commande.getProduitsCommander().stream()
                 .allMatch(produitCommander -> EtatProduitCommande.DONE.getLibelle().equals(produitCommander.getEtat()));
 
         if(isDone) {
-            QuickDinnerApplication.commandesTerminer.add(commande.getId());
-            QuickDinnerApplication.playerCommandeObserver.update();
+            QuickDinnerApplication.playerCommandeObserver.update(commande);
         }
 
         return ResponseEntity.ok().build();

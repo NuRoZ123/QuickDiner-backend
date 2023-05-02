@@ -9,7 +9,6 @@ import java.util.List;
 public interface ProduitCommanderService {
     List<ProduitCommander> findAllByProduitId(int idProduit);
     List<ProduitCommander> findAllByCommandeId(int idCommande);
-    ProduitCommander save(ProduitCommander produitCommander);
     List<ProduitCommander> saveAll(List<ProduitCommander> produitCommanders);
     void deleteAllByCommande(Commande commande);
     void deleteAllByProduit(Produit produit);

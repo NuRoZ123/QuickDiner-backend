@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Builder
 @AllArgsConstructor
@@ -26,4 +27,12 @@ public class Commercant {
     @JsonIgnore
     @OneToOne
     private Utilisateur manager;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "commercant", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Produit> produits;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "commercant", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<CommentaireCommercants> commentaires;
 }

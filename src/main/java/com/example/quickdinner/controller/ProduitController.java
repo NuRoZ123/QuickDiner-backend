@@ -4,6 +4,7 @@ import com.example.quickdinner.QuickDinnerApplication;
 import com.example.quickdinner.model.Commercant;
 import com.example.quickdinner.model.Produit;
 import com.example.quickdinner.model.Utilisateur;
+import com.example.quickdinner.model.enumeration.TypeCompteUtilisateur;
 import com.example.quickdinner.service.*;
 import com.example.quickdinner.utils.Jwt;
 import io.swagger.annotations.ApiImplicitParam;
@@ -69,7 +70,7 @@ public class ProduitController {
 
         Utilisateur connectedUser = user.get();
 
-        if(!"Commercant".equals(connectedUser.getRole().getLibelle())) {
+        if(!TypeCompteUtilisateur.Commercant.getType().equals(connectedUser.getRole().getLibelle())) {
             return ResponseEntity.badRequest().body("Vous n'avez pas les droits pour accéder à cette ressource");
         }
 
@@ -78,6 +79,8 @@ public class ProduitController {
         if(optionalCommercant == null || !optionalCommercant.isPresent()) {
             return ResponseEntity.badRequest().body("Utilisateur non commercant");
         }
+
+        Commercant commercant = optionalCommercant.get();
 
         produits = produits.stream()
                 .filter(produit -> produit != null && produit.getId() == null && (produit.getNom() != null && !produit.getNom().isEmpty())
@@ -90,7 +93,7 @@ public class ProduitController {
         }
 
         produits.forEach(produit -> {
-            produit.setCommercant(optionalCommercant.get());
+            produit.setCommercant(commercant);
             produit.setPrix(((float) Math.round(produit.getPrix() * 100)) / 100);
             produitService.save(produit);
         });
@@ -109,7 +112,7 @@ public class ProduitController {
 
         Utilisateur connectedUser = user.get();
 
-        if(!"Commercant".equals(connectedUser.getRole().getLibelle())) {
+        if(!TypeCompteUtilisateur.Commercant.getType().equals(connectedUser.getRole().getLibelle())) {
             return ResponseEntity.badRequest().body("Vous n'avez pas les droits pour accéder à cette ressource");
         }
 
@@ -122,12 +125,14 @@ public class ProduitController {
         Produit produit = produitOpt.get();
         Optional<Commercant> commercantOpt = commercantService.findByUtilisateurId(connectedUser.getId());
 
+
         if(commercantOpt == null || !commercantOpt.isPresent()) {
             return ResponseEntity.badRequest().body("Restaurant not found");
         }
 
         Commercant commercant = commercantOpt.get();
-        boolean produitIsFromCommercant = produitService.findAllByCommercant(commercant.getId()).stream()
+
+        boolean produitIsFromCommercant = commercant.getProduits().stream()
                 .anyMatch(p -> Objects.equals(p.getId(), produit.getId()));
 
         if(!produitIsFromCommercant) {
@@ -151,7 +156,7 @@ public class ProduitController {
 
         Utilisateur connectedUser = user.get();
 
-        if(!"Commercant".equals(connectedUser.getRole().getLibelle())) {
+        if(!TypeCompteUtilisateur.Commercant.getType().equals(connectedUser.getRole().getLibelle())) {
             return ResponseEntity.badRequest().body("Vous n'avez pas les droits pour accéder à cette ressource");
         }
 
@@ -162,14 +167,9 @@ public class ProduitController {
         }
 
         Produit modifyProduit = produitOpt.get();
-        Optional<Commercant> commercantOpt = commercantService.findByUtilisateurId(connectedUser.getId());
+        Commercant commercant = produit.getCommercant();
 
-        if(commercantOpt == null || !commercantOpt.isPresent()) {
-            return ResponseEntity.badRequest().body("Restaurant not found");
-        }
-
-        Commercant commercant = commercantOpt.get();
-        boolean produitIsFromCommercant = produitService.findAllByCommercant(commercant.getId()).stream()
+        boolean produitIsFromCommercant = commercant.getProduits().stream()
                 .anyMatch(p -> Objects.equals(p.getId(), modifyProduit.getId()));
 
         if(!produitIsFromCommercant) {

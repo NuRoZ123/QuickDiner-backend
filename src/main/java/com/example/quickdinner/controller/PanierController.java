@@ -5,6 +5,7 @@ import com.example.quickdinner.model.Panier;
 import com.example.quickdinner.model.Produit;
 import com.example.quickdinner.model.ProduitPanier;
 import com.example.quickdinner.model.Utilisateur;
+import com.example.quickdinner.model.enumeration.TypeCompteUtilisateur;
 import com.example.quickdinner.service.PanierService;
 import com.example.quickdinner.service.ProduitPanierService;
 import com.example.quickdinner.service.ProduitService;
@@ -46,7 +47,7 @@ public class PanierController {
 
         Utilisateur connectedUser = user.get();
 
-        if(!"Client".equals(connectedUser.getRole().getLibelle())) {
+        if(!TypeCompteUtilisateur.Client.getType().equals(connectedUser.getRole().getLibelle())) {
             return ResponseEntity.status(401).body("Vous n'avez pas les droits pour accéder à cette ressource");
         }
 
@@ -75,7 +76,7 @@ public class PanierController {
 
         Utilisateur connectedUser = user.get();
 
-        if(!"Client".equals(connectedUser.getRole().getLibelle())) {
+        if(!TypeCompteUtilisateur.Client.getType().equals(connectedUser.getRole().getLibelle())) {
             return ResponseEntity.status(401).body("Vous n'avez pas les droits pour accéder à cette ressource");
         }
 
@@ -90,7 +91,11 @@ public class PanierController {
             return ResponseEntity.badRequest().body("Le produit est déjà dans le panier");
         }
 
-        panier.addProduit(ProduitPanier.builder().panier(panier).produit(produit).quantite(pairPoduitQuantite.getQuantite()).build());
+        panier.addProduit(ProduitPanier.builder()
+                .panier(panier)
+                .produit(produit)
+                .quantite(pairPoduitQuantite.getQuantite())
+                .build());
         panierService.save(panier);
 
         return ResponseEntity.status(201).body(null);
@@ -108,7 +113,7 @@ public class PanierController {
 
         Utilisateur connectedUser = user.get();
 
-        if(!"Client".equals(connectedUser.getRole().getLibelle())) {
+        if(!TypeCompteUtilisateur.Client.getType().equals(connectedUser.getRole().getLibelle())) {
             return ResponseEntity.status(401).body("Vous n'avez pas les droits pour accéder à cette ressource");
         }
 
@@ -150,7 +155,7 @@ public class PanierController {
 
         Utilisateur connectedUser = user.get();
 
-        if(!"Client".equals(connectedUser.getRole().getLibelle())) {
+        if(!TypeCompteUtilisateur.Client.getType().equals(connectedUser.getRole().getLibelle())) {
             return ResponseEntity.status(401).body("Vous n'avez pas les droits pour accéder à cette ressource");
         }
 
@@ -188,7 +193,7 @@ public class PanierController {
 
         Utilisateur connectedUser = user.get();
 
-        if(!"Client".equals(connectedUser.getRole().getLibelle())) {
+        if(!TypeCompteUtilisateur.Commercant.getType().equals(connectedUser.getRole().getLibelle())) {
             return ResponseEntity.status(401).body("Vous n'avez pas les droits pour accéder à cette ressource");
         }
 

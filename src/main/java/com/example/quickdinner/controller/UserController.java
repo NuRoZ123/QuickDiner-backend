@@ -1,6 +1,7 @@
 package com.example.quickdinner.controller;
 
 import com.example.quickdinner.model.*;
+import com.example.quickdinner.model.enumeration.TypeCompteUtilisateur;
 import com.example.quickdinner.service.*;
 import com.example.quickdinner.utils.Jwt;
 import com.example.quickdinner.utils.TripleUtilisateurCommercantType;
@@ -94,8 +95,8 @@ public class UserController {
 
         utilisateur.setPassword(argon2.hash(4, 1024 * 1024, 8, utilisateur.getPassword()));
 
-        if("Commercant".equals(type)) {
-            utilisateur.setRole(roleService.findByLibelle("Commercant").orElse(null));
+        if(TypeCompteUtilisateur.Commercant.getType().equals(type)) {
+            utilisateur.setRole(roleService.findByLibelle(TypeCompteUtilisateur.Commercant.getType()).orElse(null));
 
             if(restaurant == null) {
                 return ResponseEntity.badRequest().body("Restaurant is required");
@@ -122,8 +123,8 @@ public class UserController {
             restaurant.setManager(newUser);
             commercantService.save(restaurant);
 
-        } else if("Client".equals(type)) {
-            utilisateur.setRole(roleService.findByLibelle("Client").orElse(null));
+        } else if(TypeCompteUtilisateur.Client.getType().equals(type)) {
+            utilisateur.setRole(roleService.findByLibelle(TypeCompteUtilisateur.Client.getType()).orElse(null));
 
             Panier panier = Panier.builder().build();
             panier = panierService.save(panier);
@@ -187,9 +188,9 @@ public class UserController {
 
         Utilisateur connectedUser = user.get();
 
-        if("Admin".equals(connectedUser.getRole().getLibelle())) {
+        if(TypeCompteUtilisateur.Admin.getType().equals(connectedUser.getRole().getLibelle())) {
             utilisateurService.deleteAdmin(connectedUser);
-        } else if("Client".equals(connectedUser.getRole().getLibelle())) {
+        } else if(TypeCompteUtilisateur.Client.getType().equals(connectedUser.getRole().getLibelle())) {
             utilisateurService.deleteClient(connectedUser);
         } else {
             utilisateurService.deleteCommercant(connectedUser);
@@ -268,7 +269,7 @@ public class UserController {
     public ResponseEntity<List<String>> getTypes() {
         List<String> lesRoles = roleService.findAll().stream()
                 .map(Role::getLibelle)
-                .filter(libelle -> !"Admin".equals(libelle))
+                .filter(libelle -> !TypeCompteUtilisateur.Admin.getType().equals(libelle))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(lesRoles);
     }
@@ -290,7 +291,7 @@ public class UserController {
 
         Utilisateur connectedUser = user.get();
 
-        if(!"Client".equals(connectedUser.getRole().getLibelle())) {
+        if(!TypeCompteUtilisateur.Client.getType().equals(connectedUser.getRole().getLibelle())) {
             return ResponseEntity.badRequest().body("Utilisateur non client");
         }
 

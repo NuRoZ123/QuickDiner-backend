@@ -6,7 +6,6 @@ import com.example.quickdinner.model.Commercant;
 import com.example.quickdinner.model.ProduitCommander;
 import com.example.quickdinner.model.Utilisateur;
 import com.example.quickdinner.model.ws.WebsocketCommercant;
-import com.example.quickdinner.service.CommandeService;
 import com.example.quickdinner.service.CommercantService;
 import com.example.quickdinner.service.ProduitCommanderService;
 import com.example.quickdinner.service.UtilisateurService;
@@ -31,16 +30,14 @@ public class CommandeControllerWs implements WebSocketHandler, OberserveurWS {
     private final UtilisateurService utilisateurService;
     private final CommercantService commercantService;
     private final ProduitCommanderService produitCommanderService;
-    private final CommandeService commandeService;
 
     private final Hashtable<String, WebsocketCommercant> sessions = new Hashtable<>();
 
     public CommandeControllerWs(UtilisateurService utilisateurService, CommercantService commercantService,
-                                ProduitCommanderService produitCommanderService, CommandeService commandeService) {
+                                ProduitCommanderService produitCommanderService) {
         this.utilisateurService = utilisateurService;
         this.commercantService = commercantService;
         this.produitCommanderService = produitCommanderService;
-        this.commandeService = commandeService;
 
         QuickDinnerApplication.commandeQueuObserver = this;
     }
@@ -111,48 +108,37 @@ public class CommandeControllerWs implements WebSocketHandler, OberserveurWS {
     }
 
     @Override
-    public void update() {
+    public void update(Commande commande) {
         sessions.forEach((id, websocketCommercant) -> {
             if(websocketCommercant.getIdRestaurant() <= 0) {
                 return;
             }
 
-            // copy la liste
-            (new ArrayList<>(QuickDinnerApplication.commandesQueue)).forEach(idCommande -> {
-                List<ProduitCommander> produitCommanders = produitCommanderService.findAllByCommandeId(idCommande);
-                Commande commandePourLeResteau = new Commande(0, new ArrayList<>(), null);
-                commandePourLeResteau.setId(idCommande);
+            List<ProduitCommander> produitCommanders = produitCommanderService.findAllByCommandeId(commande.getId());
+            Commande commandePourLeResteau = new Commande(0, new ArrayList<>(), null);
+            commandePourLeResteau.setId(commande.getId());
 
-                produitCommanders.forEach(produitCommander -> {
-                    Optional<Commercant> commercantOpt = commercantService.findByProduitId(produitCommander.getProduit().getId());
+            produitCommanders.forEach(produitCommander -> {
+                Commercant commercant = produitCommander.getProduit().getCommercant();
 
-                    if(commercantOpt == null || !commercantOpt.isPresent()) {
-                        return;
-                    }
-
-                    Commercant commercant = commercantOpt.get();
-
-                    if(commercant.getId() != websocketCommercant.getIdRestaurant()) {
-                        return;
-                    }
-
-                    commandePourLeResteau.getProduitsCommander().add(produitCommander);
-                });
-
-                if(commandePourLeResteau.getProduitsCommander().size() == 0) {
+                if(commercant.getId() != websocketCommercant.getIdRestaurant()) {
                     return;
                 }
 
-                try {
-                    websocketCommercant.getSession().sendMessage(new TextMessage(commandePourLeResteau.toJson()));
-                } catch (IOException e) {
-                    System.out.println("Error: " + e.getMessage());
-                    throw new RuntimeException(e);
-                }
+                commandePourLeResteau.getProduitsCommander().add(produitCommander);
             });
-        });
 
-        QuickDinnerApplication.commandesQueue.clear();
+            if(commandePourLeResteau.getProduitsCommander().size() == 0) {
+                return;
+            }
+
+            try {
+                websocketCommercant.getSession().sendMessage(new TextMessage(commandePourLeResteau.toJson()));
+            } catch (IOException e) {
+                System.out.println("Error: " + e.getMessage());
+                throw new RuntimeException(e);
+            }
+        });
 
     }
 }

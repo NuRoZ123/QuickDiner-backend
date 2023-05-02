@@ -6,7 +6,6 @@ import javax.persistence.*;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Builder
 @AllArgsConstructor
@@ -21,18 +20,11 @@ public class Panier {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @OneToMany(mappedBy = "panier", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "panier", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ProduitPanier> produitPaniers;
 
     public void addProduit(ProduitPanier produitPanier) {
         this.produitPaniers.add(produitPanier);
-    }
-
-    public void removeProduit(Produit produit) {
-        this.produitPaniers = this.produitPaniers.stream()
-                .filter(produitPanier ->
-                        !Objects.equals(produitPanier.getProduit().getId(), produit.getId()))
-                .collect(Collectors.toList());
     }
 
     public Optional<ProduitPanier> getProduitsToProduitPanier(Produit produit) {

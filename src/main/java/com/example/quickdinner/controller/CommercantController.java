@@ -2,6 +2,7 @@ package com.example.quickdinner.controller;
 
 import com.example.quickdinner.QuickDinnerApplication;
 import com.example.quickdinner.model.*;
+import com.example.quickdinner.model.enumeration.TypeCompteUtilisateur;
 import com.example.quickdinner.service.*;
 import com.example.quickdinner.utils.BasicCommentaireNoteRestaurantByUser;
 import com.example.quickdinner.utils.Jwt;
@@ -71,7 +72,7 @@ public class CommercantController {
 
         Utilisateur connectedUser = user.get();
 
-        if(!"Commercant".equals(connectedUser.getRole().getLibelle())) {
+        if(!TypeCompteUtilisateur.Commercant.getType().equals(connectedUser.getRole().getLibelle())) {
             return ResponseEntity.status(401).body("Vous n'avez pas les droits pour accéder à cette ressource");
         }
 
@@ -100,7 +101,7 @@ public class CommercantController {
 
         Utilisateur connectedUser = user.get();
 
-        if(!"Commercant".equals(connectedUser.getRole().getLibelle())) {
+        if(!TypeCompteUtilisateur.Commercant.getType().equals(connectedUser.getRole().getLibelle())) {
             return ResponseEntity.status(401).body("Vous n'avez pas les droits pour accéder à cette ressource");
         }
 
@@ -111,24 +112,25 @@ public class CommercantController {
         }
 
         Commercant commercant = commercantOpt.get();
-        List<Produit> produits = produitService.findAllByCommercant(commercant.getId());
+
+        List<Produit> produits = commercant.getProduits();
         List<ProduitCommander> produitsCommander = new ArrayList<>();
-        produits.forEach(produit -> {
-            produitsCommander.addAll(produitCommanderService.findAllByProduitId(produit.getId()));
-        });
+        produits.forEach(produit ->
+            produitsCommander.addAll(produitCommanderService.findAllByProduitId(produit.getId()))
+        );
 
         List<Commande> commandesAvecDoublon = new ArrayList<>();
-        produitsCommander.forEach(produitCommander -> {
-            commandesAvecDoublon.add(produitCommander.getCommande());
-        });
+        produitsCommander.forEach(produitCommander ->
+            commandesAvecDoublon.add(produitCommander.getCommande())
+        );
 
         List<Commande> commandes = new ArrayList<>();
 
-        for(Commande commande : commandesAvecDoublon) {
+        commandesAvecDoublon.forEach(commande -> {
             if(!commandes.contains(commande)) {
                 commandes.add(commande);
             }
-        }
+        });
 
         commandes.forEach(commande -> {
             List<ProduitCommander> lesProduitsDuResteauSeulement = new ArrayList<>();
@@ -151,6 +153,7 @@ public class CommercantController {
     @GetMapping("/restaurants/{id}")
     public ResponseEntity getRestaurantInfo(@PathVariable("id") int id) {
         Optional<Commercant> commercantOpt = commercantService.findById(id);
+
         if(!commercantOpt.isPresent()) {
             return ResponseEntity.badRequest().body("Restaurant non trouvé");
         }
@@ -167,6 +170,7 @@ public class CommercantController {
     @GetMapping(value = "/restaurants/{id}/image", produces = MediaType.IMAGE_PNG_VALUE)
     public ResponseEntity getImage(@PathVariable("id") int id) {
         Optional<Commercant> commercant = commercantService.findById(id);
+
         if(!commercant.isPresent()) {
             return ResponseEntity.badRequest().body("Restaurant non trouvé");
         }
@@ -195,7 +199,7 @@ public class CommercantController {
 
         Utilisateur connectedUser = user.get();
 
-        if(!"Commercant".equals(connectedUser.getRole().getLibelle())) {
+        if(!TypeCompteUtilisateur.Commercant.getType().equals(connectedUser.getRole().getLibelle())) {
             return ResponseEntity.status(401).body("Vous n'avez pas les droits pour accéder à cette ressource");
         }
 
@@ -234,7 +238,7 @@ public class CommercantController {
 
         Commercant commercant = commercantOpt.get();
 
-        List<CommentaireCommercants> commentaires = commentaireCommercantsService.findAllByCommercantId(commercant.getId());
+        List<CommentaireCommercants> commentaires = commercant.getCommentaires();
         List<BasicCommentaireNoteRestaurantByUser> commentaireFormat = commentaires.stream()
                 .map(commentaireCommercants ->
                     new BasicCommentaireNoteRestaurantByUser(
