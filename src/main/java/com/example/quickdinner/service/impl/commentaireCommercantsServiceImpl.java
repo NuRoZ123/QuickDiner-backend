@@ -45,5 +45,15 @@ public class commentaireCommercantsServiceImpl implements CommentaireCommercants
     public void deleteAllByCommercant(Commercant commercant) {
         commentaireCommercantsRepository.deleteAllByCommercant(commercant.getId());
     }
+
+    @Override
+    public boolean existsByUtilisateurAndCommercant(Utilisateur utilisateur, Commercant commercant) {
+        return commentaireCommercantsRepository.findByCommercantIdAndUtilisateurId(commercant.getId(), utilisateur.getId()).isPresent();
+    }
+
+    @Override
+    public CommentaireCommercants save(CommentaireCommercants commentaireCommercants) {
+        return commentaireCommercantsRepository.save(commentaireCommercants);
+    }
 }
 

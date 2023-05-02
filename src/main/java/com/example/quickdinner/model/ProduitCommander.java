@@ -26,7 +26,6 @@ public class ProduitCommander {
     private Produit produit;
 
     private Integer quantite;
-
     private String etat;
 
     public String toJson() {

@@ -1,13 +1,7 @@
 package com.example.quickdinner.controller;
 
-import com.example.quickdinner.model.Commercant;
-import com.example.quickdinner.model.Panier;
-import com.example.quickdinner.model.Role;
-import com.example.quickdinner.model.Utilisateur;
-import com.example.quickdinner.service.CommercantService;
-import com.example.quickdinner.service.PanierService;
-import com.example.quickdinner.service.RoleService;
-import com.example.quickdinner.service.UtilisateurService;
+import com.example.quickdinner.model.*;
+import com.example.quickdinner.service.*;
 import com.example.quickdinner.utils.Jwt;
 import com.example.quickdinner.utils.TripleUtilisateurCommercantType;
 import de.mkammerer.argon2.Argon2;
@@ -34,13 +28,19 @@ public class UserController {
     private final RoleService roleService;
     private final PanierService panierService;
     private final CommercantService commercantService;
+    private final CommandeService commandeService;
+    private final CommentaireCommercantsService commentaireCommercantsService;
 
     public UserController(UtilisateurService utilisateurService, RoleService roleService,
-                          PanierService panierService, CommercantService commercantService) {
+                          PanierService panierService, CommercantService commercantService,
+                          CommentaireCommercantsService commentaireCommercantsService,
+                          CommandeService commandeService) {
         this.utilisateurService = utilisateurService;
         this.roleService = roleService;
         this.panierService = panierService;
         this.commercantService = commercantService;
+        this.commentaireCommercantsService = commentaireCommercantsService;
+        this.commandeService = commandeService;
     }
 
     @ApiOperation("Enregistre un nouvelle utilisateur")
@@ -271,5 +271,70 @@ public class UserController {
                 .filter(libelle -> !"Admin".equals(libelle))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(lesRoles);
+    }
+
+    @ApiOperation("Permet d'ajouter un commentaire et une note à un restaurant")
+    @ApiImplicitParam(name = "commentaire et note",
+            value = "{\"commentaire\": \"string\", \"note\": integer}",
+            required = true,
+            dataType = "object",
+            paramType = "body")
+    @PostMapping("/user/comment/{idResteau}")
+    public ResponseEntity addComment(@RequestHeader("Authorization") String token, @PathVariable("idResteau") Integer idResteau,
+                                     @ApiParam(hidden = true) @RequestBody CommentaireCommercants commentaireCommercants) {
+        Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
+
+        if(user == null || !user.isPresent()) {
+            return ResponseEntity.badRequest().body("Utilisateur non connecté");
+        }
+
+        Utilisateur connectedUser = user.get();
+
+        if(!"Client".equals(connectedUser.getRole().getLibelle())) {
+            return ResponseEntity.badRequest().body("Utilisateur non client");
+        }
+
+        Optional<Commercant> commercantOpt = commercantService.findById(idResteau);
+
+        if(commercantOpt == null || !commercantOpt.isPresent()) {
+            return ResponseEntity.badRequest().body("Commercant non trouvé");
+        }
+
+        Commercant commercant = commercantOpt.get();
+
+        commentaireCommercants.setUtilisateur(connectedUser);
+        commentaireCommercants.setCommercant(commercant);
+
+        //check if user has already commented
+        boolean hasCommented = commentaireCommercantsService.existsByUtilisateurAndCommercant(connectedUser, commercant);
+
+        if(hasCommented) {
+            return ResponseEntity.badRequest().body("Vous avez déjà commenté ce restaurant");
+        }
+
+        //check if user has already ordered
+        boolean hasOrdered = commandeService.findAllByUtilisateurId(connectedUser.getId()).stream()
+            .anyMatch(commande ->
+                commande.getProduitsCommander().stream()
+                    .anyMatch(produitCommander ->
+                        produitCommander.getProduit().getCommercant().getId().equals(commercant.getId())
+                    )
+        );
+
+        if(!hasOrdered) {
+            return ResponseEntity.badRequest().body("Vous n'avez pas commandé dans ce restaurant");
+        }
+
+        if(commentaireCommercants.getCommentaire() == null || commentaireCommercants.getCommentaire().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Commentaire vide");
+        }
+
+        if(commentaireCommercants.getNote() == null || commentaireCommercants.getNote() < 0 || commentaireCommercants.getNote() > 5) {
+            return ResponseEntity.badRequest().body("Note invalide");
+        }
+
+        commentaireCommercantsService.save(commentaireCommercants);
+
+        return ResponseEntity.ok("Commentaire ajouté");
     }
 }

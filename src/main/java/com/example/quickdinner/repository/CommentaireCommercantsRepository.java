@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CommentaireCommercantsRepository extends JpaRepository<CommentaireCommercants, Integer> {
@@ -24,4 +25,6 @@ public interface CommentaireCommercantsRepository extends JpaRepository<Commenta
     @Modifying
     @Query("delete from CommentaireCommercants where commercant.id = :idCommercant")
     void deleteAllByCommercant(@Param("idCommercant") int idCommercant);
+
+    Optional<CommentaireCommercants> findByCommercantIdAndUtilisateurId(int idCommercant, int idUtilisateur);
 }

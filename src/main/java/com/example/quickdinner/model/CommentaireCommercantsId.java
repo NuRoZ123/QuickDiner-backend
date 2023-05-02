@@ -6,9 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.Entity;
-import javax.persistence.IdClass;
-import javax.persistence.Table;
 import java.io.Serializable;
 
 @Getter
@@ -17,6 +14,6 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class CommentaireCommercantsId implements Serializable {
 
-    private Long utilisateur;
-    private Long commercant;
+    private Integer utilisateur;
+    private Integer commercant;
 }
