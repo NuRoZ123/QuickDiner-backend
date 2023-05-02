@@ -3,6 +3,7 @@ package com.example.quickdinner.controller;
 import com.example.quickdinner.QuickDinnerApplication;
 import com.example.quickdinner.model.*;
 import com.example.quickdinner.service.*;
+import com.example.quickdinner.utils.BasicCommentaireNoteRestaurantByUser;
 import com.example.quickdinner.utils.Jwt;
 import com.example.quickdinner.utils.PairNoteRestaurant;
 import io.swagger.annotations.ApiImplicitParam;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/api")
@@ -37,6 +39,7 @@ public class CommercantController {
         this.utilisateurService = utilisateurService;
         this.produitService = produitService;
         this.produitCommanderService = produitCommanderService;
+
     }
 
     @ApiOperation(value = "recupère tous les commerçans (restaurant)",
@@ -219,6 +222,31 @@ public class CommercantController {
         commercantService.save(commercantToUpdate);
 
         return ResponseEntity.ok().build();
+    }
+
+    @ApiOperation(value = "Permet de recupèrer les notes et commentaire du restaurant")
+    @GetMapping("/restaurants/{id}/commentaires")
+    public ResponseEntity getNoteAndCommentary(@PathVariable("id") int id) {
+        Optional<Commercant> commercantOpt = commercantService.findById(id);
+        if(!commercantOpt.isPresent()) {
+            return ResponseEntity.badRequest().body("Restaurant non trouvé");
+        }
+
+        Commercant commercant = commercantOpt.get();
+
+        List<CommentaireCommercants> commentaires = commentaireCommercantsService.findAllByCommercantId(commercant.getId());
+        List<BasicCommentaireNoteRestaurantByUser> commentaireFormat = commentaires.stream()
+                .map(commentaireCommercants ->
+                    new BasicCommentaireNoteRestaurantByUser(
+                            commentaireCommercants.getUtilisateur().getNom(),
+                            commentaireCommercants.getCommercant().getId(),
+                            commentaireCommercants.getCommentaire(),
+                            ((float) Math.round(commentaireCommercants.getNote() * 100)) / 100
+                            )
+                )
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(commentaireFormat);
     }
 
 }

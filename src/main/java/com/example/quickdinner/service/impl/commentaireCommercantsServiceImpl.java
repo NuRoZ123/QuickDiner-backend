@@ -55,5 +55,10 @@ public class commentaireCommercantsServiceImpl implements CommentaireCommercants
     public CommentaireCommercants save(CommentaireCommercants commentaireCommercants) {
         return commentaireCommercantsRepository.save(commentaireCommercants);
     }
+
+    @Override
+    public List<CommentaireCommercants> findAllByCommercantId(int idCommercant) {
+        return commentaireCommercantsRepository.findByCommercantId(idCommercant);
+    }
 }
 
