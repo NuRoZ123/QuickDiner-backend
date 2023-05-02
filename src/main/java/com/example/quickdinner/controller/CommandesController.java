@@ -131,7 +131,7 @@ public class CommandesController {
 
         Utilisateur connectedUser = user.get();
 
-        if(TypeCompteUtilisateur.Commercant.getType().equals(connectedUser.getRole().getLibelle())) {
+        if(!TypeCompteUtilisateur.Commercant.getType().equals(connectedUser.getRole().getLibelle())) {
             return ResponseEntity.status(401).body("Vous n'avez pas les droits pour accéder à cette ressource");
         }
 

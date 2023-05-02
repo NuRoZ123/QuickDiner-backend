@@ -5,6 +5,7 @@ import com.example.quickdinner.model.Commande;
 import com.example.quickdinner.model.Commercant;
 import com.example.quickdinner.model.ProduitCommander;
 import com.example.quickdinner.model.Utilisateur;
+import com.example.quickdinner.model.enumeration.TypeCompteUtilisateur;
 import com.example.quickdinner.model.ws.WebsocketCommercant;
 import com.example.quickdinner.service.CommercantService;
 import com.example.quickdinner.service.ProduitCommanderService;
@@ -89,7 +90,7 @@ public class CommandeControllerWs implements WebSocketHandler, OberserveurWS {
 
         Utilisateur user = userOpt.get();
 
-        if(!"Commercant".equals(user.getRole().getLibelle())) {
+        if(!TypeCompteUtilisateur.Commercant.getType().equals(user.getRole().getLibelle())) {
             session.sendMessage(new TextMessage("{\"Error\": \"Vous n'avez pas les droits pour accéder à cette ressource\"}"));
             return;
         }
