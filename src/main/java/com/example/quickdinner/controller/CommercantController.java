@@ -57,6 +57,34 @@ public class CommercantController {
         return ResponseEntity.ok(commercants);
     }
 
+    @ApiOperation(value = "recupère les infos du restaurant du commercant connecté")
+    @GetMapping("/restaurants/own")
+    public ResponseEntity getInfoResteau(@RequestHeader("Authorization") String token) {
+        Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
+
+        if(user == null || !user.isPresent()) {
+            return ResponseEntity.badRequest().body("Utilisateur non connecté");
+        }
+
+        Utilisateur connectedUser = user.get();
+
+        if(!"Commercant".equals(connectedUser.getRole().getLibelle())) {
+            return ResponseEntity.status(401).body("Vous n'avez pas les droits pour accéder à cette ressource");
+        }
+
+        Optional<Commercant> commercantOpt = commercantService.findByUtilisateurId(connectedUser.getId());
+
+        if(!commercantOpt.isPresent()) {
+            return ResponseEntity.badRequest().body("Restaurant non trouvé");
+        }
+
+        Commercant commercant = commercantOpt.get();
+
+        commercant.setImage(QuickDinnerApplication.getHost() + "/api/restaurants/" + commercant.getId() + "/image");
+
+        return ResponseEntity.ok(commercant);
+    }
+
     @ApiOperation(value = "recupère toutes les commandes du restaurant",
     response = List.class)
     @GetMapping("/restaurants/commandes")
