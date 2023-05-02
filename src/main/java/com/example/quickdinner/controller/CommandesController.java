@@ -5,6 +5,7 @@ import com.example.quickdinner.model.Commande;
 import com.example.quickdinner.model.Produit;
 import com.example.quickdinner.model.ProduitCommander;
 import com.example.quickdinner.model.Utilisateur;
+import com.example.quickdinner.model.enumeration.EtatProduitCommande;
 import com.example.quickdinner.service.CommandeService;
 import com.example.quickdinner.service.ProduitCommanderService;
 import com.example.quickdinner.service.ProduitService;
@@ -16,10 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -101,6 +99,7 @@ public class CommandesController {
                                 .commande(finalCommande)
                                 .produit(produitsMap.get(pairPoduitQuantite.getId()))
                                 .quantite(pairPoduitQuantite.getQuantite())
+                                .etat(EtatProduitCommande.WIP.getLibelle())
                                 .build())
                 .collect(Collectors.toList());
 
@@ -111,6 +110,51 @@ public class CommandesController {
 
         if(QuickDinnerApplication.commandeQueuObserver != null) {
             QuickDinnerApplication.commandeQueuObserver.update();
+        }
+
+        return ResponseEntity.ok().build();
+    }
+
+
+    @ApiOperation("Permet de définir la commande en terminé")
+    @PutMapping("/user/commandes/{id}/termine")
+    public ResponseEntity setCommandeTermine(@RequestHeader("Authorization") String token,
+                                         @PathVariable("id") Integer id) {
+        Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
+        if(user == null || !user.isPresent()) {
+            return ResponseEntity.badRequest().body("Utilisateur non connecté");
+        }
+
+        Utilisateur connectedUser = user.get();
+
+        if(!"Commercant".equals(connectedUser.getRole().getLibelle())) {
+            return ResponseEntity.status(401).body("Vous n'avez pas les droits pour accéder à cette ressource");
+        }
+
+        Optional<Commande> commandeOpt = commandeService.findById(id);
+
+        if(commandeOpt == null || !commandeOpt.isPresent()) {
+            return ResponseEntity.badRequest().body("Commande non trouvée");
+        }
+
+        Commande commande = commandeOpt.get();
+        commande.getProduitsCommander().forEach(produitCommander -> {
+            if(Objects.equals(produitCommander.getProduit().getCommercant().getManager().getId(), connectedUser.getId())) {
+                produitCommander.setEtat(EtatProduitCommande.DONE.getLibelle());
+
+                produitCommanderService.save(produitCommander);
+            }
+        });
+
+
+
+        // Check si la commande est completer par tlm
+        boolean isDone = commande.getProduitsCommander().stream()
+                .allMatch(produitCommander -> EtatProduitCommande.DONE.getLibelle().equals(produitCommander.getEtat()));
+
+        if(isDone) {
+            QuickDinnerApplication.commandesTerminer.add(commande.getId());
+            QuickDinnerApplication.playerCommandeObserver.update();
         }
 
         return ResponseEntity.ok().build();

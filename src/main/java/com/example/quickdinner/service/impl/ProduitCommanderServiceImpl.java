@@ -31,6 +31,11 @@ public class ProduitCommanderServiceImpl implements ProduitCommanderService {
     }
 
     @Override
+    public ProduitCommander save(ProduitCommander produitCommander) {
+        return produitCommanderRepository.save(produitCommander);
+    }
+
+    @Override
     public List<ProduitCommander> saveAll(List<ProduitCommander> produitCommanders) {
         return produitCommanderRepository.saveAll(produitCommanders);
     }

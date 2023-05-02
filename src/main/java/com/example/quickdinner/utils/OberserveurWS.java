@@ -1,5 +1,5 @@
 package com.example.quickdinner.utils;
 
-public interface CommandeQueuObserver {
+public interface OberserveurWS {
     void update();
 }

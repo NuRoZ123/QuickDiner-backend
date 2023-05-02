@@ -1,6 +1,7 @@
 package com.example.quickdinner;
 
 import com.example.quickdinner.controller.CommandeControllerWs;
+import com.example.quickdinner.controller.UserCommandeControllerWs;
 import com.example.quickdinner.service.CommandeService;
 import com.example.quickdinner.service.CommercantService;
 import com.example.quickdinner.service.ProduitCommanderService;
@@ -33,5 +34,8 @@ public class WebsocketConfig implements WebSocketConfigurer {
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(new CommandeControllerWs(utilisateurService, commercantService, produitCommanderService, commandeService),
                 "/websocket/restaurants/commandes").setAllowedOrigins("*");
+
+        registry.addHandler(new UserCommandeControllerWs(utilisateurService, commandeService),
+                "/websocket/user/commandes").setAllowedOrigins("*");
     }
 }

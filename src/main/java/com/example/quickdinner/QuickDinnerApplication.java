@@ -1,6 +1,6 @@
 package com.example.quickdinner;
 
-import com.example.quickdinner.utils.CommandeQueuObserver;
+import com.example.quickdinner.utils.OberserveurWS;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
@@ -12,8 +12,10 @@ import java.util.List;
 @EnableSwagger2
 public class QuickDinnerApplication {
 	public static final List<Integer> commandesQueue = new ArrayList<>();
-	public static CommandeQueuObserver commandeQueuObserver = null;
-	public static final String ENV = "DEV";
+	public static final List<Integer> commandesTerminer = new ArrayList<>();
+	public static OberserveurWS commandeQueuObserver = null;
+	public static OberserveurWS playerCommandeObserver = null;
+	public static final String ENV = "PROD";
 
 	public static String getHost() {
 		String host = "";

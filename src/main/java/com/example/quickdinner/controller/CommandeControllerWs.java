@@ -10,8 +10,8 @@ import com.example.quickdinner.service.CommandeService;
 import com.example.quickdinner.service.CommercantService;
 import com.example.quickdinner.service.ProduitCommanderService;
 import com.example.quickdinner.service.UtilisateurService;
-import com.example.quickdinner.utils.CommandeQueuObserver;
 import com.example.quickdinner.utils.Jwt;
+import com.example.quickdinner.utils.OberserveurWS;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
 
@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
-public class CommandeControllerWs implements WebSocketHandler, CommandeQueuObserver {
+public class CommandeControllerWs implements WebSocketHandler, OberserveurWS {
 
     private final UtilisateurService utilisateurService;
     private final CommercantService commercantService;

@@ -89,8 +89,6 @@ public class CommercantController {
             commandesAvecDoublon.add(produitCommander.getCommande());
         });
 
-        System.out.println(commandesAvecDoublon);
-
         List<Commande> commandes = new ArrayList<>();
 
         for(Commande commande : commandesAvecDoublon) {
