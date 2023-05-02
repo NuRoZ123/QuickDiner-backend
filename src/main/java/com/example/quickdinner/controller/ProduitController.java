@@ -91,6 +91,7 @@ public class ProduitController {
 
         produits.forEach(produit -> {
             produit.setCommercant(optionalCommercant.get());
+            produit.setPrix(((float) Math.round(produit.getPrix() * 100)) / 100);
             produitService.save(produit);
         });
 
