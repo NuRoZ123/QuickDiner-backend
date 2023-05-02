@@ -12,6 +12,8 @@ public class QuickDinnerApplication {
 	public static OberserveurWS playerCommandeObserver = null;
 	public static final String ENV = "PROD";
 
+//	APIContext context = new APIContext("secretClientId", clientSecret, mode);
+
 	public static String getHost() {
 		String host = "";
 		if("DEV".equals(ENV)) {

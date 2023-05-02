@@ -169,7 +169,7 @@ public class ProduitController {
         Produit modifyProduit = produitOpt.get();
         Commercant commercant = produit.getCommercant();
 
-        boolean produitIsFromCommercant = commercant.getProduits().stream()
+        boolean produitIsFromCommercant = produitService.findAllByCommercant(commercant.getId()).stream()
                 .anyMatch(p -> Objects.equals(p.getId(), modifyProduit.getId()));
 
         if(!produitIsFromCommercant) {
