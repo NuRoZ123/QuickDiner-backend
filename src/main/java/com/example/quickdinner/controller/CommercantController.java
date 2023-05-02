@@ -5,7 +5,9 @@ import com.example.quickdinner.model.*;
 import com.example.quickdinner.service.*;
 import com.example.quickdinner.utils.Jwt;
 import com.example.quickdinner.utils.PairNoteRestaurant;
+import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -143,6 +145,52 @@ public class CommercantController {
         byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(b64.substring(b64.indexOf(",") + 1));
 
         return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(imageBytes);
+    }
+
+    @ApiOperation(value = "Permet de modifier les infos du restaurant")
+    @PutMapping("/restaurants")
+    @ApiImplicitParam(name = "Produits",
+            value = "{\"adresse\": \"string\", \"image\": \"string\", \"nom\": \"string\"}",
+            required = true,
+            dataType = "object",
+            paramType = "body")
+    public ResponseEntity updateRestaurant(@RequestHeader("Authorization") String token,
+                                           @ApiParam(hidden = true) @RequestBody Commercant commercant) {
+        Optional<Utilisateur> user = Jwt.getUserFromToken(token, utilisateurService);
+
+        if(user == null || !user.isPresent()) {
+            return ResponseEntity.badRequest().body("Utilisateur non connecté");
+        }
+
+        Utilisateur connectedUser = user.get();
+
+        if(!"Commercant".equals(connectedUser.getRole().getLibelle())) {
+            return ResponseEntity.status(401).body("Vous n'avez pas les droits pour accéder à cette ressource");
+        }
+
+        Optional<Commercant> commercantOpt = commercantService.findByUtilisateurId(connectedUser.getId());
+
+        if(!commercantOpt.isPresent()) {
+            return ResponseEntity.badRequest().body("Restaurant non trouvé");
+        }
+
+        Commercant commercantToUpdate = commercantOpt.get();
+
+        if(commercant.getAdresse() != null && !"".equals(commercant.getAdresse().trim())) {
+            commercantToUpdate.setAdresse(commercant.getAdresse());
+        }
+
+        if(commercant.getImage() != null && !"".equals(commercant.getImage().trim())) {
+            commercantToUpdate.setImage(commercant.getImage());
+        }
+
+        if(commercant.getNom() != null && !"".equals(commercant.getNom().trim())) {
+            commercantToUpdate.setNom(commercant.getNom());
+        }
+
+        commercantService.save(commercantToUpdate);
+
+        return ResponseEntity.ok().build();
     }
 
 }
