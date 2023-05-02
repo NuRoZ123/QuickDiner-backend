@@ -167,7 +167,13 @@ public class ProduitController {
         }
 
         Produit modifyProduit = produitOpt.get();
-        Commercant commercant = produit.getCommercant();
+        Optional<Commercant> commercantOpt = commercantService.findByUtilisateurId(connectedUser.getId());
+
+        if(commercantOpt == null || !commercantOpt.isPresent()) {
+            return ResponseEntity.badRequest().body("Restaurant not found");
+        }
+
+        Commercant commercant = commercantOpt.get();
 
         boolean produitIsFromCommercant = produitService.findAllByCommercant(commercant.getId()).stream()
                 .anyMatch(p -> Objects.equals(p.getId(), modifyProduit.getId()));
