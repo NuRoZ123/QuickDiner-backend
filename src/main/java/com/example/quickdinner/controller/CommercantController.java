@@ -2,6 +2,7 @@ package com.example.quickdinner.controller;
 
 import com.example.quickdinner.QuickDinnerApplication;
 import com.example.quickdinner.model.*;
+import com.example.quickdinner.model.enumeration.EtatProduitCommande;
 import com.example.quickdinner.model.enumeration.TypeCompteUtilisateur;
 import com.example.quickdinner.service.*;
 import com.example.quickdinner.utils.BasicCommentaireNoteRestaurantByUser;
@@ -124,15 +125,15 @@ public class CommercantController {
             commandesAvecDoublon.add(produitCommander.getCommande())
         );
 
-        List<Commande> commandes = new ArrayList<>();
 
+        List<Commande> commandeTraitement = new ArrayList<>();
         commandesAvecDoublon.forEach(commande -> {
-            if(!commandes.contains(commande)) {
-                commandes.add(commande);
+            if(!commandeTraitement.contains(commande)) {
+                commandeTraitement.add(commande);
             }
         });
 
-        commandes.forEach(commande -> {
+        commandeTraitement.forEach(commande -> {
             List<ProduitCommander> lesProduitsDuResteauSeulement = new ArrayList<>();
 
             commande.getProduitsCommander().forEach(produitCommander -> {
@@ -144,6 +145,15 @@ public class CommercantController {
 
             commande.setProduitsCommander(lesProduitsDuResteauSeulement);
         });
+
+
+        List<Commande> commandes = commandeTraitement.stream()
+                .filter(commande ->
+                                // checi si un produit de la commande est en cours si oui on supprime la commande
+                                commande.getProduitsCommander().stream()
+                                        .anyMatch(produitCommander -> produitCommander.getEtat().equals(EtatProduitCommande.WIP.getLibelle()))
+                        )
+                .collect(Collectors.toList());
 
 
         return ResponseEntity.ok(commandes);
