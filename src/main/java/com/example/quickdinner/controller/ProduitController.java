@@ -5,6 +5,7 @@ import com.example.quickdinner.model.Commercant;
 import com.example.quickdinner.model.Produit;
 import com.example.quickdinner.model.Utilisateur;
 import com.example.quickdinner.model.enumeration.TypeCompteUtilisateur;
+import com.example.quickdinner.model.enumeration.TypeProduit;
 import com.example.quickdinner.service.*;
 import com.example.quickdinner.utils.Jwt;
 import io.swagger.annotations.ApiImplicitParam;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -56,7 +58,7 @@ public class ProduitController {
 
     @ApiOperation(value = "Manager can create a new produit")
     @ApiImplicitParam(name = "Produits",
-            value = "[{\"nom\": \"string\", \"prix\": float, \"description\": \"string\", \"image\": \"string\"}]",
+            value = "[{\"nom\": \"string\", \"prix\": float, \"description\": \"string\", \"image\": \"string\", \"typeProduit\": \"string\"}]",
             required = true,
             dataType = "object",
             paramType = "body")
@@ -85,20 +87,28 @@ public class ProduitController {
         produits = produits.stream()
                 .filter(produit -> produit != null && produit.getId() == null && (produit.getNom() != null && !produit.getNom().isEmpty())
                         && produit.getPrix() != null && (produit.getCommercant() == null)
-                        && (produit.getImage() != null && !produit.getImage().isEmpty()))
+                        && (produit.getImage() != null && !produit.getImage().isEmpty())
+                        && (produit.getTypeProduit() != null && !produit.getTypeProduit().isEmpty()
+                        && TypeProduit.getByString(produit.getTypeProduit()) != null))
                 .collect(Collectors.toList());
 
         if(produits.isEmpty()) {
             return ResponseEntity.badRequest().body("Produits invalides");
         }
 
+        List<Produit> saveProduit = new ArrayList<>();
+
         produits.forEach(produit -> {
             produit.setCommercant(commercant);
             produit.setPrix(((float) Math.round(produit.getPrix() * 100)) / 100);
-            produitService.save(produit);
+            saveProduit.add(produitService.save(produit));
         });
 
-        return ResponseEntity.status(201).body(null);
+        saveProduit.forEach(produit -> {
+            produit.setImage(QuickDinnerApplication.getHost() + "/api/produits/" + produit.getId() + "/image");
+        });
+
+        return ResponseEntity.status(201).body(saveProduit);
     }
 
     @ApiOperation(value = "Manager delete a produit")
@@ -160,6 +170,10 @@ public class ProduitController {
             return ResponseEntity.badRequest().body("Vous n'avez pas les droits pour accéder à cette ressource");
         }
 
+        if(produit == null || produit.getId() == null) {
+            return ResponseEntity.badRequest().body("Produit invalides");
+        }
+
         Optional<Produit> produitOpt = produitService.findById(produit.getId());
 
         if(produitOpt == null || !produitOpt.isPresent()) {
@@ -198,6 +212,13 @@ public class ProduitController {
             modifyProduit.setImage(produit.getImage());
         }
 
+        if(produit.getTypeProduit() != null && !produit.getTypeProduit().isEmpty()) {
+            if(TypeProduit.getByString(produit.getTypeProduit()) == null) {
+                return ResponseEntity.badRequest().body("Type de produit invalide");
+            }
+            modifyProduit.setTypeProduit(produit.getTypeProduit());
+        }
+
         produitService.save(modifyProduit);
 
         return ResponseEntity.status(200).body(null);
@@ -222,4 +243,14 @@ public class ProduitController {
         return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(imageBytes);
     }
 
+    @ApiOperation(value = "Récupèrer tout les type de produits")
+    @GetMapping("/produits/types")
+    public ResponseEntity getAllTypeProduit() {
+        List<String> typeProduit = TypeProduit.getAsList()
+                .stream()
+                .map(TypeProduit::getTypeProduit)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.status(200).body(typeProduit);
+    }
 }

@@ -22,6 +22,8 @@ public class Produit {
     private String description;
     private Float prix;
 
+    private String typeProduit;
+
     @Column(name= "image", columnDefinition = "LONGTEXT")
     private String image;
 
