@@ -25,6 +25,8 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = {"*"})
 public class UserController {
 
+    private final Argon2 argon2 = Argon2Factory.create(Argon2Factory.Argon2Types.ARGON2i, 16, 32);
+
     private final UtilisateurService utilisateurService;
     private final RoleService roleService;
     private final PanierService panierService;
@@ -46,7 +48,7 @@ public class UserController {
 
     @ApiOperation("Enregistre un nouvelle utilisateur")
     @ApiImplicitParam(name = "Utilisateur et Restaurant",
-            value = "{\"utilisateur: " +
+            value = "{\"utilisateur\": " +
                     "{\"nom\": \"string\", \"prenom\": \"string\", \"email\": \"string\", \"password\": \"string\"}," +
                     "\"restaurant\": " +
                     "{\"nom\": \"string\", \"adresse\": \"string\", \"image\": \"string\"}, " +
@@ -90,10 +92,7 @@ public class UserController {
                     " a lowercase, an uppercase letter and a special character");
         }
 
-        Argon2 argon2 = Argon2Factory.create(
-                Argon2Factory.Argon2Types.ARGON2id, 32, 64);
-
-        utilisateur.setPassword(argon2.hash(4, 1024 * 1024, 8, utilisateur.getPassword()));
+        utilisateur.setPassword(argon2.hash(4, 2048*2, 8, utilisateur.getPassword().toCharArray()));
 
         if(TypeCompteUtilisateur.Commercant.getType().equals(type)) {
             utilisateur.setRole(roleService.findByLibelle(TypeCompteUtilisateur.Commercant.getType()).orElse(null));
@@ -154,16 +153,13 @@ public class UserController {
             return ResponseEntity.badRequest().body("Password is required");
         }
 
-        Argon2 argon2 = Argon2Factory.create(
-                Argon2Factory.Argon2Types.ARGON2id, 32, 64);
-
         Optional<Utilisateur> user = utilisateurService.findByEmail(utilisateur.getEmail());
 
         if(!user.isPresent()) {
             return ResponseEntity.badRequest().body("Identifiants ou mot de passe incorrect");
         }
 
-        if(!argon2.verify(user.get().getPassword(), utilisateur.getPassword())) {
+        if(!argon2.verify(user.get().getPassword(), utilisateur.getPassword().toCharArray())) {
             return ResponseEntity.badRequest().body("Identifiants ou mot de passe incorrect");
         }
 
@@ -242,10 +238,7 @@ public class UserController {
                         " a lowercase, an uppercase letter and a special character");
             }
 
-            Argon2 argon2 = Argon2Factory.create(
-                    Argon2Factory.Argon2Types.ARGON2id, 32, 64);
-
-            connectedUser.setPassword(argon2.hash(4, 1024 * 1024, 8, utilisateur.getPassword()));
+            connectedUser.setPassword(argon2.hash(4, 2048*2, 8, utilisateur.getPassword().toCharArray()));
         }
 
         utilisateurService.save(connectedUser);
