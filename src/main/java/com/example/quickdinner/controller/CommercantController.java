@@ -287,7 +287,7 @@ public class CommercantController {
         List<BasicCommentaireNoteRestaurantByUser> commentaireFormat = commentaires.stream()
                 .map(commentaireCommercants ->
                     new BasicCommentaireNoteRestaurantByUser(
-                            commentaireCommercants.getUtilisateur().getNom(),
+                            commentaireCommercants.getUtilisateur().getPrenom(),
                             commentaireCommercants.getCommercant().getId(),
                             commentaireCommercants.getCommentaire(),
                             ((float) Math.round(commentaireCommercants.getNote() * 100)) / 100
