@@ -20,6 +20,9 @@ public class Commercant {
     private Integer id;
     private String nom;
     private String adresse;
+    private String ville;
+    private Double latitude;
+    private Double longitude;
 
     @Column(name= "image", columnDefinition = "LONGTEXT")
     private String image;

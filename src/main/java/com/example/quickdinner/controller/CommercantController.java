@@ -1,5 +1,6 @@
 package com.example.quickdinner.controller;
 
+import com.example.quickdinner.API.adresseGouv.AdresseGouvApi;
 import com.example.quickdinner.QuickDinnerApplication;
 import com.example.quickdinner.model.*;
 import com.example.quickdinner.model.enumeration.EtatProduitCommande;
@@ -7,6 +8,7 @@ import com.example.quickdinner.model.enumeration.TypeCompteUtilisateur;
 import com.example.quickdinner.service.*;
 import com.example.quickdinner.utils.BasicCommentaireNoteRestaurantByUser;
 import com.example.quickdinner.utils.Jwt;
+import com.example.quickdinner.utils.PairLongLat;
 import com.example.quickdinner.utils.TripleNoteRestaurantMoyenne;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
@@ -212,7 +214,7 @@ public class CommercantController {
     @ApiOperation(value = "Permet de modifier les infos du restaurant")
     @PutMapping("/restaurants")
     @ApiImplicitParam(name = "Produits",
-            value = "{\"adresse\": \"string\", \"image\": \"string\", \"nom\": \"string\"}",
+            value = "{\"adresse\": \"string\", \"image\": \"string\", \"nom\": \"string\", \"ville\": \"string\"}",
             required = true,
             dataType = "object",
             paramType = "body")
@@ -238,8 +240,24 @@ public class CommercantController {
 
         Commercant commercantToUpdate = commercantOpt.get();
 
-        if(commercant.getAdresse() != null && !"".equals(commercant.getAdresse().trim())) {
+        if(commercant.getAdresse() != null && !"".equals(commercant.getAdresse().trim()) ||
+                commercant.getVille() != null && !"".equals(commercant.getVille().trim())) {
             commercantToUpdate.setAdresse(commercant.getAdresse());
+            commercantToUpdate.setVille(commercant.getVille());
+
+            try {
+                PairLongLat position = AdresseGouvApi.getAdresseGouvService(commercantToUpdate.getAdresse(),
+                        commercantToUpdate.getVille());
+
+                if(position == null) {
+                    return ResponseEntity.badRequest().body("Adresse of restaurant is not valid");
+                }
+
+                commercantToUpdate.setLatitude(position.getLatitude());
+                commercantToUpdate.setLongitude(position.getLongitude());
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body("Adresse of restaurant is not valid");
+            }
         }
 
         if(commercant.getImage() != null && !"".equals(commercant.getImage().trim())) {

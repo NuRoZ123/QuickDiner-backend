@@ -19,6 +19,17 @@
 	</properties>
 	<dependencies>
 		<dependency>
+			<groupId>com.squareup.retrofit2</groupId>
+			<artifactId>retrofit</artifactId>
+			<version>2.9.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.squareup.retrofit2</groupId>
+			<artifactId>converter-gson</artifactId>
+			<version>2.9.0</version>
+		</dependency>
+
+		<dependency>
 			<groupId>com.paypal.sdk</groupId>
 			<artifactId>paypal-core</artifactId>
 			<version>1.7.2</version>
@@ -164,12 +175,12 @@
 		<dependency>
 			<groupId>com.squareup.retrofit2</groupId>
 			<artifactId>retrofit</artifactId>
-			<version>2.6.1</version>
+			<version>2.7.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.squareup.retrofit2</groupId>
 			<artifactId>converter-gson</artifactId>
-			<version>2.6.1</version>
+			<version>2.7.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.squareup.retrofit2</groupId>

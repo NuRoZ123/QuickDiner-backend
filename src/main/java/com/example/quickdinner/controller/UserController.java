@@ -1,9 +1,11 @@
 package com.example.quickdinner.controller;
 
+import com.example.quickdinner.API.adresseGouv.AdresseGouvApi;
 import com.example.quickdinner.model.*;
 import com.example.quickdinner.model.enumeration.TypeCompteUtilisateur;
 import com.example.quickdinner.service.*;
 import com.example.quickdinner.utils.Jwt;
+import com.example.quickdinner.utils.PairLongLat;
 import com.example.quickdinner.utils.TripleUtilisateurCommercantType;
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
@@ -51,7 +53,7 @@ public class UserController {
             value = "{\"utilisateur\": " +
                     "{\"nom\": \"string\", \"prenom\": \"string\", \"email\": \"string\", \"password\": \"string\"}," +
                     "\"restaurant\": " +
-                    "{\"nom\": \"string\", \"adresse\": \"string\", \"image\": \"string\"}, " +
+                    "{\"nom\": \"string\", \"adresse\": \"string\", \"image\": \"string\", \"ville\": \"string\"}, " +
                     "\"type\": \"string\"}",
             required = true,
             dataType = "object",
@@ -115,6 +117,23 @@ public class UserController {
 
             if(restaurant.getImage() == null || restaurant.getImage().trim().isEmpty()) {
                 return ResponseEntity.badRequest().body("Image of restaurant is required");
+            }
+
+            if(restaurant.getVille() == null || restaurant.getVille().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Ville of restaurant is required");
+            }
+
+            try {
+                PairLongLat position = AdresseGouvApi.getAdresseGouvService(restaurant.getAdresse(), restaurant.getVille());
+
+                if(position == null) {
+                    return ResponseEntity.badRequest().body("Adresse of restaurant is not valid");
+                }
+
+                restaurant.setLatitude(position.getLatitude());
+                restaurant.setLongitude(position.getLongitude());
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body("Adresse of restaurant is not valid");
             }
 
             Utilisateur newUser = utilisateurService.save(utilisateur);
