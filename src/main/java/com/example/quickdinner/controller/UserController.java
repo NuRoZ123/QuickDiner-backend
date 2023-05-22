@@ -160,11 +160,11 @@ public class UserController {
         Optional<Utilisateur> user = utilisateurService.findByEmail(utilisateur.getEmail());
 
         if(!user.isPresent()) {
-            return ResponseEntity.badRequest().body("Email or password is wrong");
+            return ResponseEntity.badRequest().body("Identifiants ou mot de passe incorrect");
         }
 
         if(!argon2.verify(user.get().getPassword(), utilisateur.getPassword())) {
-            return ResponseEntity.badRequest().body("Email or password is wrong");
+            return ResponseEntity.badRequest().body("Identifiants ou mot de passe incorrect");
         }
 
         return ResponseEntity.ok(Jwt.generate(user.get()));
