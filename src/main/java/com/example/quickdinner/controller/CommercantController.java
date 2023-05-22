@@ -7,7 +7,7 @@ import com.example.quickdinner.model.enumeration.TypeCompteUtilisateur;
 import com.example.quickdinner.service.*;
 import com.example.quickdinner.utils.BasicCommentaireNoteRestaurantByUser;
 import com.example.quickdinner.utils.Jwt;
-import com.example.quickdinner.utils.PairNoteRestaurant;
+import com.example.quickdinner.utils.TripleNoteRestaurantMoyenne;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -47,16 +47,24 @@ public class CommercantController {
     @ApiOperation(value = "recupère tous les commerçans (restaurant)",
     response = List.class)
     @GetMapping("/restaurants")
-    public ResponseEntity<List<PairNoteRestaurant>> getRestaurant() {
-        List<PairNoteRestaurant> commercants = new ArrayList<>();
+    public ResponseEntity<List<TripleNoteRestaurantMoyenne>> getRestaurant() {
+        List<TripleNoteRestaurantMoyenne> commercants = new ArrayList<>();
 
         commercantService.findAll().forEach(commercant -> {
-
             Float note = commentaireCommercantsService.findNote(commercant.getId());
 
             commercant.setImage(QuickDinnerApplication.getHost() + "/api/restaurants/" + commercant.getId() + "/image");
 
-            commercants.add(new PairNoteRestaurant(note, commercant));
+            List<Produit> produits = commercant.getProduits();
+            Float moyenne = 0f;
+
+            for(Produit produit : produits) {
+                moyenne += produit.getPrix();
+            }
+
+            moyenne = moyenne / produits.size();
+
+            commercants.add(new TripleNoteRestaurantMoyenne(note, commercant, moyenne));
         });
 
         return ResponseEntity.ok(commercants);
@@ -173,7 +181,16 @@ public class CommercantController {
         Float note = commentaireCommercantsService.findNote(commercant.getId());
         commercant.setImage(QuickDinnerApplication.getHost() + "/api/restaurants/" + commercant.getId() + "/image");
 
-        return ResponseEntity.ok(new PairNoteRestaurant(note, commercant));
+        List<Produit> produits = commercant.getProduits();
+        Float moyenne = 0f;
+
+        for(Produit produit : produits) {
+            moyenne += produit.getPrix();
+        }
+
+        moyenne = moyenne / produits.size();
+
+        return ResponseEntity.ok(new TripleNoteRestaurantMoyenne(note, commercant, moyenne));
     }
 
     @ApiOperation(value = "Récupèrer l'image du restau par son id")
